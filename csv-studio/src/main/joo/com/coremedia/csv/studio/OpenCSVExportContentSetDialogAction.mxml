@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<studio:OpenCSVExportContentSetDialogActionBase xmlns:fx="http://ns.adobe.com/mxml/2009"
+                                                xmlns:studio="com.coremedia.csv.studio.*"
+                                                actionId="{ACTION_ID}"
+                                                contentValueExpression="{ValueExpressionFactory.createFromValue()}">
+  <fx:Script><![CDATA[
+    import com.coremedia.ui.data.ValueExpressionFactory;
+
+    public static const ACTION_ID:String = "openCSVExportContentSetDialogAction";
+
+    private var config:OpenCSVExportContentSetDialogAction;
+
+    public native function OpenCSVExportContentSetDialogAction(config:OpenCSVExportContentSetDialogAction = null);
+    ]]></fx:Script>
+
+</studio:OpenCSVExportContentSetDialogActionBase>

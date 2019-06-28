@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CMSettings folder="/Settings/Options/Settings" name="ReportingSettings" xmlns:cmexport="http://www.coremedia.com/2012/cmexport">
+<locale>en-US</locale>
+<master/>
+<settings><Struct xmlns="http://www.coremedia.com/2008/struct" xmlns:xlink="http://www.w3.org/1999/xlink">
+<StructProperty Name="templates">
+<Struct>
+<StructProperty Name="default">
+<Struct>
+<StringListProperty Name="csvHeaders">
+<String>Id</String>
+<String>Name</String>
+<String>Path</String>
+<String>URL</String>
+<String>Title</String>
+<String>Type</String>
+<String>Keywords</String>
+<String>TeaserTitle</String>
+<String>TeaserText</String>
+<String>URLSegment</String>
+<String>HTMLTitle</String>
+<String>HTMLDescription</String>
+<String>SubjectTags</String>
+<String>CreationDate</String>
+<String>CreatedBy</String>
+<String>LastModificationDate</String>
+<String>LastModifiedBy</String>
+<String>ExternallyDisplayedDate</String>
+<String>AssociatedTheme</String>
+<String>AssociatedJavaScript</String>
+<String>AssociatedCss</String>
+<String>LinkedSettings</String>
+<String>VersionStatus</String>
+<String>PublicationDate</String>
+<String>Locale</String>
+<String>ExportStatus</String>
+</StringListProperty>
+<StructProperty Name="csvProperties">
+<Struct>
+<StringProperty Name="Title">title</StringProperty>
+<StringProperty Name="Keywords">keywords</StringProperty>
+<StringProperty Name="TeaserTitle">teaserTitle</StringProperty>
+<StringProperty Name="TeaserText">teaserText</StringProperty>
+<StringProperty Name="URLSegment">segment</StringProperty>
+<StringProperty Name="HTMLTitle">htmlTitle</StringProperty>
+<StringProperty Name="HTMLDescription">htmlDescription</StringProperty>
+<StringProperty Name="SubjectTags">subjectTaxonomy</StringProperty>
+<StringProperty Name="ExternallyDisplayedDate">extDisplayedDate</StringProperty>
+<StringProperty Name="AssociatedTheme">theme</StringProperty>
+<StringProperty Name="AssociatedJavaScript">javaScript</StringProperty>
+<StringProperty Name="AssociatedCss">css</StringProperty>
+<StringProperty Name="LinkedSettings">linkedSettings</StringProperty>
+<StringProperty Name="Locale">locale</StringProperty>
+</Struct>
+</StructProperty>
+</Struct>
+</StructProperty>
+</Struct>
+</StructProperty>
+</Struct></settings>
+<identifier></identifier>
+</CMSettings>

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<componentPackage>
+  <component class="com.coremedia.csv.studio.CSVExportStudioPlugin"/>
+  <component class="com.coremedia.csv.studio.OpenCSVExportByFolderDialogAction"/>
+  <component class="com.coremedia.csv.studio.OpenCSVExportContentSetDialogAction"/>
+  <component class="com.coremedia.csv.studio.CSVExportLibraryPlugin"/>
+  <component class="com.coremedia.csv.studio.CSVExportDialog"/>
+</componentPackage>
