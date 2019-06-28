@@ -36,7 +36,7 @@ The directory at which the export should be written to. The default directory is
 
 -f | --filename
 
-The filename of which the export should have. The default filename format is "Report_YYYY-MM-DD_HH-MM-SS.csv"
+The filename of which the export should have. The default filename format is "Report_YYYY-MM-DD_HH-MM-SS.csv".
 
 -pr | --protocol
 
@@ -47,8 +47,8 @@ How to Obtain a Query URL
 
 Open studio and open the Library. Specify the desired parameters for your export job using the filters available in the Library search. This example sets up a script to export all content in the "Content" folder that was modified within the last day.
 
-[Screenshot to Come]
+![](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/img/AutoJob1.png)
 
 Open the export dialog box (do not hit “Export” or close the dialog). There will be a collapsible panel called “Query URL” that will display the Query URL of the selected search parameters. At the bottom of the dialog box, there is a “Copy Query URL” button. This can be used to directly copy the contents of “Query URL”. This value will be the input for the option `-q | -queryurl` for the command line tool.
 
-[Screenshot to Come]
+![](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/img/AutoJob2.png)

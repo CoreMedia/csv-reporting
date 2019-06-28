@@ -1,6 +1,6 @@
 # CoreMedia CSV Reporting Extension
 
-he CoreMedia CSV Reporting Extension allows users to generate reports in CSV format describing the state of a bulk selection of content. Content may be selected in the same manner as a content search is performed in studio. This is implemented as a blueprint extension titled “CSV”, which includes modules for the studio and preview CAE components.
+The CoreMedia CSV Reporting Extension allows users to generate reports in CSV format describing the state of a bulk selection of content. Content may be selected in the same manner as a content search is performed in studio. This is implemented as a blueprint extension titled “CSV”, which includes modules for the studio and preview CAE components.
 ## About this Project
 Maintained by Kevin Cherniawski, Alia Robinson, and Lihan Zhang
 
@@ -11,7 +11,10 @@ This extension introduces a dependency on the third-party library “superCSV”
 Versions of the CSV Reporter extension correspond to CoreMedia releases. For example, version 1904.1-1 of the CSV reporter is compatible with CoreMedia version 1904.1.
 
 # Installation
-1. Add Add the CSV extension to the workspace at modules/extensions/csv
+1. Add the CSV extension to the workspace as a submodule:
+    ```
+    git submodule add [repo URL] modules/extensions/csv
+    ```
 2. Add the csv module to modules/extensions/pom.xml:
     ```
     <modules>
@@ -58,7 +61,7 @@ nt/Settings/Options/Settings/ReportingSettings.xml
 ```
 
 # Documentation
-* [Tutorial]
-* [Configuration]
-* [Automatic Reporting]
-* [API]
+* [Tutorial](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/Tutorial.md)
+* [Configuration](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/Configuration.md)
+* [Automatic Reporting](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/AutomaticReporting.md)
+* [API](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/API.md)

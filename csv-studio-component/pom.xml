@@ -13,7 +13,7 @@
   <artifactId>csv-studio-component</artifactId>
 
   <properties>
-    <coremedia.project.extension.for>studio-component</coremedia.project.extension.for>
+    <coremedia.project.extension.for>studio-lib</coremedia.project.extension.for>
   </properties>
 
   <dependencies>

@@ -1,5 +1,5 @@
 # Configuration
-CSV templates can be configured through the global settings document available at Settings/Options/Settings/ReportingSettings. The templates defined in this file determine which columns will be included the generated CSV files.
+CSV templates can be configured through the global settings document available at Settings/Options/Settings/ReportingSettings. The templates defined in this file determine which columns will be included in the generated CSV files.
 ## Adding a Template
 To add a new template, create a new struct as a child of “templates”, and give it a unique name. This struct must have the following two properties:
 1. csvHeaders (String List)
