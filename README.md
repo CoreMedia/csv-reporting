@@ -13,7 +13,7 @@ Versions of the CSV Reporter extension correspond to CoreMedia releases. For exa
 # Installation
 1. Add the CSV extension to the workspace as a submodule:
     ```
-    git submodule add [repo URL] modules/extensions/csv
+    git submodule add https://github.com/CoreMedia/csv-reporting.git modules/extensions/csv
     ```
 2. Add the csv module to modules/extensions/pom.xml:
     ```
