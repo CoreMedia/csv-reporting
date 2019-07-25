@@ -507,14 +507,14 @@ public abstract class BaseCSVUtil {
    * @return the value of the local setting variable from the content
    */
   private Object getLocalSettingValue(String[] settingPathSegments, Content content) {
-    // Get the structure/value of the first local setting variable in the segments
-    Object result = settingsService.settingAsMap(settingPathSegments[0], String.class, Object.class, content);
-
     // If the local setting variable is a direct value and not nested within the settings, then there will only be
     // one segment. In this event, we can return the value at the segment
     if (settingPathSegments.length == 1) {
-      return result;
+      return settingsService.setting(settingPathSegments[0], Object.class, content);
     } else {
+      // Get the structure/value of the first local setting variable in the segments
+      Object result = settingsService.settingAsMap(settingPathSegments[0], String.class, Object.class, content);
+
       // Otherwise the value is nested in a potential series of maps. We iterate through the maps until we reach
       // the final part of that segment. The end of the segment path will contain the value
       Map map = (Map) result;
