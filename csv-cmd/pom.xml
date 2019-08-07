@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.coremedia.blueprint</groupId>
+    <artifactId>csv</artifactId>
+    <version>1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>csv-cmd</artifactId>
+  <packaging>coremedia-application</packaging>
+
+  <dependencies>
+    <!--our library containing the clients main class-->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>csv-importer</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.coremedia.cms</groupId>
+      <artifactId>application-runtime</artifactId>
+      <type>coremedia-application</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.coremedia.cms</groupId>
+      <artifactId>application-runtime</artifactId>
+      <type>pom</type>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
