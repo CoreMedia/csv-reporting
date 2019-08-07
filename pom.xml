@@ -13,7 +13,9 @@
   </properties>
 
   <modules>
+    <module>csv-cmd</module>
     <module>csv-common</module>
+    <module>csv-importer</module>
     <module>csv-preview-cae</module>
     <module>csv-studio</module>
     <module>csv-studio-component</module>

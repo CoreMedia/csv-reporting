@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <import resource="classpath:/com/coremedia/cache/cache-services.xml"/>
+    <import resource="classpath:/com/coremedia/blueprint/base/settings/impl/bpbase-settings-services.xml"/>
+
+    <!--The report header name is the key, the corresponding content property name is the value-->
+    <util:map id="reportHeadersToContentProperties">
+        <entry key="#{columnTitleCSV}" value="#{propertyTitleCSV}" />
+        <entry key="#{columnKeywordsCSV}" value="#{propertyKeywordsCSV}" />
+        <entry key="#{columnTeaserTitleCSV}" value="#{propertyTeaserTitleCSV}" />
+        <entry key="#{columnTeaserTextCSV}" value="#{propertyTeaserTextCSV}" />
+        <entry key="#{columnURLSegmentCSV}" value="#{propertyURLSegmentCSV}" />
+        <entry key="#{columnHTMLTitleCSV}" value="#{propertyHTMLTitleCSV}" />
+        <entry key="#{columnHTMLDescriptionCSV}" value="#{propertyHTMLDescriptionCSV}" />
+        <entry key="#{columnSubjectTagsCSV}" value="#{propertySubjectTagsCSV}" />
+        <entry key="#{columnProductIdsCSV}" value="#{propertyProductIdsCSV}"/>
+        <entry key="#{columnUnmappedProductKeysCSV}" value="#{propertyUnmappedProductKeysCSV}" />
+        <entry key="#{columnExternallyDisplayedDateCSV}" value="#{propertyExternallyDisplayedDateCSV}" />
+        <entry key="#{columnExternallyAssociatedThemeCSV}" value="#{propertyExternallyAssociatedThemeCSV}" />
+        <entry key="#{columnExternallyAssociatedJavaScriptCSV}" value="#{propertyExternallyAssociatedJavaScriptCSV}" />
+        <entry key="#{columnExternallyAssociatedCssCSV}" value="#{propertyExternallyAssociatedCssCSV}" />
+        <entry key="#{columnLinkedSettingsCSV}" value="#{propertyLinkedSettingsCSV}" />
+        <entry key="#{columnLocaleCSV}" value="#{propertyLocaleCSV}" />
+        <entry key="#{columnPictureTitleCSV}" value="#{propertyPictureTitleCSV}"/>
+        <entry key="#{columnPictureCaptionCSV}" value="#{propertyPictureCaptionCSV}" />
+        <entry key="#{columnAlternativeTextCSV}" value="#{propertyAlternativeTextCSV}" />
+        <entry key="#{columnExternalLinkTargetURLCSV}" value="#{propertyExternalLinkTargetURLCSV}" />
+        <entry key="#{columnDataURL}" value="#{propertyDataURL}" />
+        <entry key="#{columnExternalIdCSV}" value="#{propertyExternalIdCSV}" />
+    </util:map>
+
+    <util:list id="baseCSVHandlerColumnHeaders">
+        <ref bean="columnIdCSV"/>
+        <ref bean="columnNameCSV"/>
+        <ref bean="columnPathCSV" />
+        <ref bean="columnURLCSV" />
+        <ref bean="columnTitleCSV" />
+        <ref bean="columnTypeCSV" />
+        <ref bean="columnIsSiteRootDocumentCSV" />
+        <ref bean="columnKeywordsCSV"/>
+        <ref bean="columnTeaserTitleCSV" />
+        <ref bean="columnTeaserTextCSV" />
+        <ref bean="columnURLSegmentCSV" />
+        <ref bean="columnHTMLTitleCSV" />
+        <ref bean="columnHTMLDescriptionCSV" />
+        <ref bean="columnSubjectTagsCSV" />
+        <ref bean="columnProductIdsCSV" />
+        <ref bean="columnUnmappedProductKeysCSV" />
+        <ref bean="columnCreationDateCSV" />
+        <ref bean="columnCreatedByCSV" />
+        <ref bean="columnLastModificationDateCSV" />
+        <ref bean="columnExternallyDisplayedDateCSV" />
+        <ref bean="columnExternallyAssociatedThemeCSV" />
+        <ref bean="columnExternallyAssociatedJavaScriptCSV" />
+        <ref bean="columnExternallyAssociatedCssCSV" />
+        <ref bean="columnLinkedSettingsCSV" />
+        <ref bean="columnVersionStatusCSV" />
+        <ref bean="columnPublicationDateCSV" />
+        <ref bean="columnExternalLinkTargetURLCSV" />
+        <ref bean="columnLocaleCSV" />
+        <ref bean="columnPictureTitleCSV" />
+        <ref bean="columnPictureCaptionCSV" />
+        <ref bean="columnAlternativeTextCSV" />
+        <ref bean="columnDataURL" />
+    </util:list>
+
+    <util:list id="handcraftedSearchCSVHandlerColumnHeaders">
+        <ref bean="columnIdCSV"/>
+        <ref bean="columnNameCSV"/>
+        <ref bean="columnPathCSV" />
+        <ref bean="columnKeywordCSV" />
+    </util:list>
+
+    <util:list id="featuredSearchCSVHandlerColumnHeaders">
+        <ref bean="columnIdCSV"/>
+        <ref bean="columnNameCSV"/>
+        <ref bean="columnParentColection"/>
+        <ref bean="columnPathCSV" />
+        <ref bean="columnKeywordCSV" />
+        <ref bean="columnTypeCSV" />
+    </util:list>
+
+    <util:list id="productReferenceCSVHandlerColumnHeaders">
+        <ref bean="columnIdCSV"/>
+        <ref bean="columnTypeCSV" />
+        <ref bean="columnExternalIdCSV" />
+        <ref bean="columnProductIdsCSV" />
+    </util:list>
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_ID" id="columnIdCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_NAME" id="columnNameCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_PATH" id="columnPathCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_URL" id="columnURLCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_TITLE" id="columnTitleCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_TITLE" id="propertyTitleCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_TYPE" id="columnTypeCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_IS_SITE_ROOT_DOCUMENT" id="columnIsSiteRootDocumentCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_KEYWORDS" id="columnKeywordsCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_KEYWORDS" id="propertyKeywordsCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_TEASER_TITLE" id="columnTeaserTitleCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_TEASER_TITLE" id="propertyTeaserTitleCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_TEASER_TEXT" id="columnTeaserTextCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_TEASER_TEXT" id="propertyTeaserTextCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_URL_SEGMENT" id="columnURLSegmentCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_URL_SEGMENT" id="propertyURLSegmentCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_HTML_TITLE" id="columnHTMLTitleCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_HTML_TITLE" id="propertyHTMLTitleCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_HTML_DESCRIPTION" id="columnHTMLDescriptionCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_HTML_DESCRIPTION" id="propertyHTMLDescriptionCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_SUBJECT_TAGS" id="columnSubjectTagsCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_SUBJECT_TAGS" id="propertySubjectTagsCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_PRODUCT_IDS" id="columnProductIdsCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_PRODUCT_IDS" id="propertyProductIdsCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_UNMAPPED_PRODUCT_KEYS" id="columnUnmappedProductKeysCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_UNMAPPED_PRODUCT_KEYS" id="propertyUnmappedProductKeysCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_CREATION_DATE" id="columnCreationDateCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_CREATED_BY" id="columnCreatedByCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_LAST_MODIFICATION_DATE" id="columnLastModificationDateCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_EXTERNALLY_DISPLAYED_DATE" id="columnExternallyDisplayedDateCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_EXTERNALLY_DISPLAYED_DATE" id="propertyExternallyDisplayedDateCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_EXTERNALLY_ASSOCIATED_THEME" id="columnExternallyAssociatedThemeCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_EXTERNALLY_ASSOCIATED_THEME" id="propertyExternallyAssociatedThemeCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_EXTERNALLY_ASSOCIATED_JAVASCRIPT" id="columnExternallyAssociatedJavaScriptCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_EXTERNALLY_ASSOCIATED_JAVASCRIPT" id="propertyExternallyAssociatedJavaScriptCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_EXTERNALLY_ASSOCIATED_CSS" id="columnExternallyAssociatedCssCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_EXTERNALLY_ASSOCIATED_CSS" id="propertyExternallyAssociatedCssCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_LINKED_SETTINGS" id="columnLinkedSettingsCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_LINKED_SETTINGS" id="propertyLinkedSettingsCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_VERSION_STATUS" id="columnVersionStatusCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_PUBLICATION_DATE" id="columnPublicationDateCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_EXTERNAL_LINK_TARGET_URL" id="columnExternalLinkTargetURLCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_EXTERNAL_LINK_TARGET_URL" id="propertyExternalLinkTargetURLCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_LOCALE" id="columnLocaleCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_LOCALE" id="propertyLocaleCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_PICTURE_TITLE" id="columnPictureTitleCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_PICTURE_TITLE" id="propertyPictureTitleCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_PICTURE_CAPTION" id="columnPictureCaptionCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_PICTURE_CAPTION" id="propertyPictureCaptionCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_ALTERNATIVE_TEXT" id="columnAlternativeTextCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_ALTERNATIVE_TEXT" id="propertyAlternativeTextCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_KEYWORD" id="columnKeywordCSV" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_PARENT_COLLECTION" id="columnParentColection" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_DATA_URL" id="columnDataURL" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_DATA_URL" id="propertyDataURL" />
+
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.COLUMN_EXTERNAL_ID" id="columnExternalIdCSV" />
+    <util:constant static-field="com.coremedia.csv.constants.CSVConstants.PROPERTY_EXTERNAL_ID" id="propertyExternalIdCSV" />
+
+</beans>
