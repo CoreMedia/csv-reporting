@@ -1,6 +1,10 @@
 package com.coremedia.csv.importer;
 
 import com.coremedia.cap.Cap;
+import com.coremedia.cap.content.ContentRepository;
+import com.coremedia.cap.user.Group;
+import com.coremedia.cap.user.User;
+import com.coremedia.cap.user.UserRepository;
 import com.coremedia.cmdline.AbstractSpringAwareUAPIClient;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.OptionBuilder;
@@ -13,6 +17,7 @@ import org.springframework.beans.factory.annotation.Required;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.*;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,6 +68,11 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
     private static final String SOURCE_CSV_ERROR_NOT_CSV = "ERROR: The specified file is not a CSV.\nFile " +
             "specified: %s.";
 
+  /**
+   * Error message when the user is not authorized to perform the import.
+   */
+  private static final String USER_NOT_AUTHORIZED = "Cannot perform CSV Import. Unauthorized.";
+
     /**
      * Error message when parsing the CSV file fails.
      */
@@ -93,6 +103,16 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
      * The handler class which will parse the CSV and import the data into the respective content.
      */
     private CSVParserHelper csvHandler;
+
+  /**
+   * Flag indicating whether access to this endpoint should be restricted to authorized groups only
+   */
+  private boolean restrictToAuthorizedGroups;
+
+  /**
+   * The Authorized Uer Groups which are allowed to conduct an import.
+   */
+  private List<String> authorizedGroups;
 
     /**
      * Constructor.
@@ -187,31 +207,57 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
     @Override
     protected void run() {
 
+      // Check that the user is a member of the requisite group
+      if(restrictToAuthorizedGroups && !isAuthorized()) {
+        getLogger().error(USER_NOT_AUTHORIZED);
+      }
+      else {
         reportHeadersToContentProperties = getApplicationContext().getBean("reportHeadersToContentProperties",
                 Map.class);
 
         // Verify that the source CSV file is a CSV
         File csvFile = new File(sourceCSV);
         if (!csvFile.exists()) {
-            getLogger().error(String.format(SOURCE_CSV_ERROR_DNE, sourceCSV));
+          getLogger().error(String.format(SOURCE_CSV_ERROR_DNE, sourceCSV));
         } else if (csvFile.isDirectory()) {
-            getLogger().error(String.format(SOURCE_CSV_ERROR_NOT_CSV, sourceCSV));
+          getLogger().error(String.format(SOURCE_CSV_ERROR_NOT_CSV, sourceCSV));
         } else {
-            try {
-
-                // Pass the CSV to the CSVParser
-                FileInputStream fileStream = new FileInputStream(csvFile);
-                CSVParser parser = new CSVParser(new BufferedReader(new InputStreamReader(fileStream, "UTF-8")),
-                        CSVFormat.EXCEL.withHeader());
-                csvHandler = new CSVParserHelper(autoPublish, getContentRepository(), logger);
-                logger.info("CSVParser: executing ...");
-                csvHandler.parseCSV(parser, reportHeadersToContentProperties);
-                logger.info("CSVParser: Completed content upload.");
-            } catch (IOException e) {
-                getLogger().error(String.format(ERROR_PARSING_CSV, e.getMessage(), e));
-            }
+          try {
+            // Pass the CSV to the CSVParser
+            FileInputStream fileStream = new FileInputStream(csvFile);
+            CSVParser parser = new CSVParser(new BufferedReader(new InputStreamReader(fileStream, "UTF-8")),
+                    CSVFormat.EXCEL.withHeader());
+            csvHandler = new CSVParserHelper(autoPublish, getContentRepository(), logger);
+            logger.info("CSVParser: executing ...");
+            csvHandler.parseCSV(parser, reportHeadersToContentProperties);
+            logger.info("CSVParser: Completed content upload.");
+          } catch (IOException e) {
+            getLogger().error(String.format(ERROR_PARSING_CSV, e.getMessage(), e));
+          }
         }
+      }
     }
+
+  /**
+   * Checks whether the current user is authorized to initiate a CSV export.
+   *
+   * @return whether the current user is authorized to initiate a CSV export
+   */
+  private boolean isAuthorized() {
+    if(this.authorizedGroups == null || this.authorizedGroups.isEmpty())
+      return false;
+
+    ContentRepository contentRepository = getContentRepository();
+    User user = contentRepository.getConnection().getSession().getUser();
+    UserRepository userRepository = contentRepository.getConnection().getUserRepository();
+    for(String authorizedGroupName : authorizedGroups) {
+      Group group = userRepository.getGroupByName(authorizedGroupName);
+      if(group != null && user.isMemberOf(group)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
     /**
      * Sets the report headers to content properties map.
@@ -222,6 +268,24 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
     public void setReportHeadersToContentProperties(Map<String, String> reportHeadersToContentProperties) {
         this.reportHeadersToContentProperties = reportHeadersToContentProperties;
     }
+
+  /**
+   * Sets the authorized groups.
+   *
+   * @param authorizedGroups the authorized groups to set
+   */
+  public void setAuthorizedGroups(List<String> authorizedGroups) {
+    this.authorizedGroups = authorizedGroups;
+  }
+
+  /**
+   * Set the flag indicating whether access to this endpoint should be restricted to authorized groups only.
+   *
+   * @param restrictToAuthorizedGroups the value to set
+   */
+  public void setRestrictToAuthorizedGroups(boolean restrictToAuthorizedGroups) {
+    this.restrictToAuthorizedGroups = restrictToAuthorizedGroups;
+  }
 
     /**
      * Main function called from the command line. Passes the arguments to the class.
