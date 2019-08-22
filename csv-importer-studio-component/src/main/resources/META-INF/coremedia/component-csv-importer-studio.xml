@@ -5,7 +5,7 @@
 
   <import resource="classpath:com/coremedia/rest/cap/cap-rest-service.xml"/>
 
-  <bean id="csvExportResource" class="com.coremedia.csv.studio.CSVImportResource" scope="prototype">
+  <bean id="csvImportResource" class="com.coremedia.csv.studio.CSVImportResource" scope="prototype">
     <property name="contentRepository" ref="contentRepository"/>
     <property name="restrictToAuthorizedGroups" value="true"/>
     <property name="authorizedGroups">
