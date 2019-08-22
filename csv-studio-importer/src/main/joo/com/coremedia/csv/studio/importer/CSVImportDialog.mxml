@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<importer:CSVImportDialogBase xmlns:fx="http://ns.adobe.com/mxml/2009"
+                              xmlns:importer="com.coremedia.csv.studio.importer.*">
+  <fx:Script><![CDATA[
+    private var config:CSVImportDialog;
+
+    public native function CSVImportDialog(config:CSVImportDialog = null);
+    ]]></fx:Script>
+</importer:CSVImportDialogBase>
