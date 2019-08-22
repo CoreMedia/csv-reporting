@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <import resource="classpath:com/coremedia/rest/cap/cap-rest-service.xml"/>
+
+  <bean id="csvExportResource" class="com.coremedia.csv.studio.CSVImportResource" scope="prototype">
+    <property name="contentRepository" ref="contentRepository"/>
+    <property name="restrictToAuthorizedGroups" value="true"/>
+    <property name="authorizedGroups">
+      <list>
+        <value>importer</value>
+      </list>
+    </property>
+  </bean>
+</beans>
