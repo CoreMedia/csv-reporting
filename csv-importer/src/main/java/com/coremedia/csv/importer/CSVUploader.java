@@ -107,7 +107,7 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
   /**
    * Flag indicating whether access to this endpoint should be restricted to authorized groups only
    */
-  private boolean restrictToAuthorizedGroups;
+  private Boolean restrictToAuthorizedGroups;
 
   /**
    * The Authorized Uer Groups which are allowed to conduct an import.
@@ -206,6 +206,9 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
      */
     @Override
     protected void run() {
+
+      restrictToAuthorizedGroups = getApplicationContext().getBean("restrictToAuthorizedGroups", Boolean.class);
+      authorizedGroups = getApplicationContext().getBean("authorizedGroups", List.class);
 
       // Check that the user is a member of the requisite group
       if(restrictToAuthorizedGroups && !isAuthorized()) {
