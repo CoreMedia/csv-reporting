@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<editor:StudioPlugin
+        xmlns="exml:ext.config"
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:exml="http://www.jangaroo.net/exml/0.8"
+        xmlns:editor="exml:com.coremedia.cms.editor.sdk.config" xmlns:ui="exml:com.coremedia.ui.config"
+        xmlns:local="com.coremedia.csv.studio.importer.*">
+
+  <fx:Script><![CDATA[
+    public static const xtype:String = "com.coremedia.csv.studio.config.csvImportStudioPlugin";
+
+    private var config:CSVImportStudioPlugin;
+
+    public native function CSVImportStudioPlugin(config:CSVImportStudioPlugin = null);
+    ]]></fx:Script>
+
+  <editor:rules>
+    <editor:ExtensionsMenuToolbar>
+      <editor:plugins>
+        <ui:AddItemsPlugin>
+          <ui:items>
+            <Button itemId="btn-csvimport" text="CSV Import">
+              <baseAction>
+                <local:OpenCSVImportDialogAction/>
+              </baseAction>
+            </Button>
+          </ui:items>
+        </ui:AddItemsPlugin>
+      </editor:plugins>
+    </editor:ExtensionsMenuToolbar>
+
+  </editor:rules>
+</editor:StudioPlugin>

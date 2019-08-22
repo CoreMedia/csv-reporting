@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<importer:OpenCSVImportDialogActionBase xmlns:fx="http://ns.adobe.com/mxml/2009"
+                                        xmlns:importer="com.coremedia.csv.studio.importer.*">
+  <fx:Script><![CDATA[
+    public static const ACTION_ID:String = "openCSVImportDialogAction";
+    private var config:OpenCSVImportDialogAction;
+
+    public native function OpenCSVImportDialogAction(config:OpenCSVImportDialogAction = null);
+    ]]></fx:Script>
+</importer:OpenCSVImportDialogActionBase>
