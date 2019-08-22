@@ -11,6 +11,12 @@
 
     <bean id="csvUploader" class="com.coremedia.csv.importer.CSVUploader">
         <property name="reportHeadersToContentProperties" ref="reportHeadersToContentProperties"/>
+      <property name="restrictToAuthorizedGroups" value="true"/>
+      <property name="authorizedGroups">
+        <list>
+          <value>importer</value>
+        </list>
+      </property>
     </bean>
 
 </beans>
