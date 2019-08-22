@@ -247,19 +247,36 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
    * @return whether the current user is authorized to initiate a CSV export
    */
   private boolean isAuthorized() {
-    if(this.authorizedGroups == null || this.authorizedGroups.isEmpty())
+    if (this.authorizedGroups == null || this.authorizedGroups.isEmpty())
       return false;
 
     ContentRepository contentRepository = getContentRepository();
     User user = contentRepository.getConnection().getSession().getUser();
     UserRepository userRepository = contentRepository.getConnection().getUserRepository();
-    for(String authorizedGroupName : authorizedGroups) {
+    for (String authorizedGroupName : authorizedGroups) {
       Group group = userRepository.getGroupByName(authorizedGroupName);
-      if(group != null && user.isMemberOf(group)) {
+      if (group != null && user.isMemberOf(group)) {
         return true;
       }
     }
     return false;
+  }
+
+    public void runFromRequest(InputStream fileInputStream) {
+      reportHeadersToContentProperties = getApplicationContext().getBean("reportHeadersToContentProperties",
+              Map.class);
+
+      try {
+        // Pass the CSV to the CSVParser
+        CSVParser parser = new CSVParser(new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8")),
+                CSVFormat.EXCEL.withHeader());
+        csvHandler = new CSVParserHelper(autoPublish, getContentRepository(), logger);
+        logger.info("CSVParser: executing ...");
+        csvHandler.parseCSV(parser, reportHeadersToContentProperties);
+        logger.info("CSVParser: Completed content upload.");
+      } catch (IOException e) {
+        getLogger().error(String.format(ERROR_PARSING_CSV, e.getMessage(), e));
+      }
   }
 
     /**
