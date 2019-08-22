@@ -65,7 +65,6 @@ public class CSVImportResource {
   }
 
   @POST
-  @Path("create")
   @Consumes({"multipart/form-data"})
   public Response importCSV(@HeaderParam("site") String siteId, @HeaderParam("folderUri") String folderUri, @FormDataParam("contentName") String contentName, @FormDataParam("file") InputStream inputStream, @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("file") FormDataBodyPart fileBodyPart) {
   // Check that the user is a member of the requisite group
