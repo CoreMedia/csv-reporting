@@ -53,6 +53,8 @@ public class CSVParserHelper {
      */
     private int contentImported = 0;
 
+    private Content firstContent;
+
     /**
      * The list of currently imported contents that have not yet been published. These contents will be published later
      * so that it is more efficient.
@@ -208,6 +210,9 @@ public class CSVParserHelper {
                          success = setObjectPropertiesInContent(content, recordObjectProperties);
 
                         if (success && !recordObjectProperties.isEmpty()) {
+                          if(firstContent == null) {
+                            firstContent = content;
+                          }
                             contentImported++;
                         }
                     }
@@ -892,5 +897,9 @@ public class CSVParserHelper {
         contentHelper.applyPreviousState(importedContents);
         logger.info("Documents written: " + contentImported);
         logger.info("WritingHandler: executing finished.");
+    }
+
+    public Content getFirstContent() {
+      return firstContent;
     }
 }
