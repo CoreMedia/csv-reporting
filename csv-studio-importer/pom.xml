@@ -59,6 +59,23 @@
           </namespaces>
         </configuration>
       </plugin>
+
+        <plugin>
+          <groupId>net.jangaroo</groupId>
+          <artifactId>jangaroo-maven-plugin</artifactId>
+          <version>${jangaroo.version}</version>
+          <extensions>true</extensions>
+          <configuration>
+            <namespaces>
+              <namespace>
+                <uri>exml:com.coremedia.csv.studio.importer</uri>
+              </namespace>
+            </namespaces>
+            <additionalCssNonBundle>
+              <value>resources/joo/resources/css/importer-studio.css</value>
+            </additionalCssNonBundle>
+          </configuration>
+        </plugin>
     </plugins>
   </build>
 </project>

@@ -1,17 +1,24 @@
 package com.coremedia.csv.studio.importer {
+import com.coremedia.cap.content.Content;
 import com.coremedia.cms.editor.sdk.upload.FileWrapper;
 import com.coremedia.cms.editor.sdk.upload.UploadManager;
+import com.coremedia.cms.editor.sdk.upload.UploadSettings;
 import com.coremedia.cms.editor.sdk.upload.dialog.FileContainer;
 import com.coremedia.cms.editor.sdk.upload.dialog.FileContainersObservable;
 import com.coremedia.cms.editor.sdk.upload.dialog.UploadDialog;
+import com.coremedia.cms.editor.sdk.util.MessageBoxUtil;
 import com.coremedia.ui.data.ValueExpression;
 import com.coremedia.ui.data.ValueExpressionFactory;
+import com.coremedia.ui.data.error.RemoteError;
+import com.coremedia.ui.data.impl.RemoteService;
 import com.coremedia.ui.util.EventUtil;
 
 import ext.Ext;
 
 import ext.MessageBox;
 import ext.container.Container;
+
+import js.XMLHttpRequest;
 
 public class CSVImportDialogBase extends UploadDialog {
 
@@ -118,12 +125,70 @@ public class CSVImportDialogBase extends UploadDialog {
 
   protected override function okPressed():void {
     var fileWrappers:Array = fileContainers.getFiles();
+    var url = RemoteService.calculateRequestURI('importcsv/uploadfile');
     fileWrappers.forEach(function (fileWrapper:FileWrapper):void {
-      fileWrapper.setCustomUploadUrl('importcsv/uploadfile');
+      //fileWrapper.setCustomUploadUrl('importcsv/uploadfile');
+      //fileWrapper.upload(settings, null, onSuccess, uploadError, progress);
+
+      //upload(url, settings, null, onSuccess, uploadError, progress);
+      html5upload(url, fileWrapper.getFile());
     });
 
     close();
-    UploadManager.bulkUpload(settings, null, fileWrappers, callback);
+    //UploadManager.bulkUpload(settings, null, fileWrappers, callback);
+  }
+
+  private function onSuccess():void {
+    MessageBoxUtil.showInfo("Import Status", "Successfully updated content");
+  }
+
+  protected function uploadError(response:XMLHttpRequest):void {
+    var result:RemoteError = RemoteService.createRemoteError(response);
+    var message:String = result.message;
+    MessageBoxUtil.showError("Import Status", "Import failed: " + message);
+  }
+
+  public function html5upload(url:String, file:*, headerParameters:Object = undefined, contentName:String = undefined):void {
+    var uploadRequest:XMLHttpRequest;
+    var formData:* = new window['FormData']();  // TODO: add FormData class to Jangaroo libs
+
+    var fileName:String = file.name || file.fileName; // safari and chrome use the non std. fileX props
+
+    if (fileName) {
+      formData.append('file', file, fileName);
+    } else {
+      formData.append('file', file);
+    }
+
+    if (contentName){
+      formData.append('contentName', contentName);
+    }
+
+    uploadRequest = new XMLHttpRequest();
+
+    uploadRequest.open('POST', url, true);
+
+    uploadRequest['onload'] = function(e:*):void { uploadCallback(uploadRequest); };
+
+    // TODO[rre]: if we could use Ajax.request here instead of XMLHttpRequest, the header would come for free
+    uploadRequest.setRequestHeader(RemoteService.getCsrfTokenHeaderName(), RemoteService.getCsrfTokenValue());
+
+    if (headerParameters) {
+      for (var key:String in headerParameters) {
+        uploadRequest.setRequestHeader(key, headerParameters[key]);
+      }
+    }
+
+    uploadRequest.send(formData);
+  }
+
+  private function uploadCallback(response:XMLHttpRequest):void {
+    var status:int = response.status;
+    if (status == 204 || status == 200 || status == 201) {
+      onSuccess();
+    } else {
+      uploadError(response);
+    }
   }
 }
 }
