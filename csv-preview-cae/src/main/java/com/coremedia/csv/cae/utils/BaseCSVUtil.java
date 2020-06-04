@@ -291,7 +291,7 @@ public abstract class BaseCSVUtil {
   protected void populateContentMetadataFields(Map<String, String> csvRecord, Content content,
                                                List<String> headerList, HttpServletRequest request,
                                                HttpServletResponse response) {
-    ContentBean bean = contentBeanFactory.createBeanFor(content);
+    ContentBean bean = contentBeanFactory.createBeanFor(content, ContentBean.class);
     String metadataProperty;
     if (headerList.contains(COLUMN_ID)) {
       metadataProperty = getContentIdString(content);
@@ -597,7 +597,8 @@ public abstract class BaseCSVUtil {
     List<Content> tags = ((List<Content>) content.get(propertyName));
     List<String> tagIds = new ArrayList<>();
     for (Content tag : tags) {
-      ContentBean tagBean = contentBeanFactory.createBeanFor(tag);
+      ContentBean tagBean = contentBeanFactory.createBeanFor(tag, CMTaxonomy.class);
+      // TODO: Update checks here as they are no longer required with updates to createBeanFor()
       if (tagBean instanceof CMTaxonomy) {
         List<? extends CMTaxonomy> taxonomyPathList = ((CMTaxonomy) tagBean).getTaxonomyPathList();
         StringBuilder prefixedCategoryPath = new StringBuilder();

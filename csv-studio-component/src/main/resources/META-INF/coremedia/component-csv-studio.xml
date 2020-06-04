@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
                            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <import resource="classpath:com/coremedia/rest/cap/cap-rest-service.xml"/>
+  <import resource="classpath:/com/coremedia/blueprint/base/settings/impl/bpbase-settings-services.xml"/>
 
   <bean id="csvFileRetriever" class="com.coremedia.csv.studio.CSVFileRetriever">
     <property name="previewUrl" value="${studio.previewUrlPrefix}"/>
@@ -16,7 +16,6 @@
     <property name="contentRepository" ref="contentRepository"/>
     <property name="searchService" ref="solrSearchService"/>
     <property name="capObjectFormat" ref="capObjectFormat"/>
-    <property name="linkResolver" ref="linkResolver"/>
     <property name="restrictToAuthorizedGroups" value="true"/>
     <property name="authorizedGroups">
       <list>

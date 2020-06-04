@@ -13,20 +13,26 @@ import com.coremedia.rest.cap.content.search.QueryUriResolver;
 import com.coremedia.rest.cap.content.search.SearchService;
 import com.coremedia.rest.cap.content.search.SearchServiceResult;
 import com.coremedia.rest.exception.BadRequestException;
-import com.coremedia.rest.linking.AbstractLinkingResource;
+import com.coremedia.rest.linking.LinkResolver;
+import com.coremedia.rest.linking.LinkResolverUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
-
 import java.util.*;
 
 /**
  * Handles Studio API requests for a CSV based on search parameters.
  */
-@Path("exportcsv/contentset")
-public class CSVExportResource extends AbstractLinkingResource {
+@RequestMapping
+@RestController
+public class CSVExportResource {
 
   public static final String TEMPLATE_PARAMETER = "template";
 
@@ -59,6 +65,12 @@ public class CSVExportResource extends AbstractLinkingResource {
    * The groups that are authorized to access this endpoint.
    */
   private List<String> authorizedGroups;
+
+  /**
+   * Resolves URI's to Domain Objects.
+   */
+  @Autowired
+  private LinkResolver linkResolver;
 
   /**
    * Sets the CSV file retriever.
@@ -117,30 +129,37 @@ public class CSVExportResource extends AbstractLinkingResource {
   /**
    * CSV Export endpoint: parameters are re-used from the /search API endpoint.
    */
-  @GET
-  public Response exportCSV(@QueryParam(value = SearchParameterNames.QUERY) final String query,
-                            @QueryParam(value = SearchParameterNames.LIMIT) final int limit,
-                            @QueryParam(value = SearchParameterNames.ORDER_BY) final List<String> sortCriteria,
-                            @QueryParam(value = SearchParameterNames.FOLDER) final String folderUri,
-                            @QueryParam(value = SearchParameterNames.INCLUDE_SUB_FOLDERS) final Boolean includeSubFolders,
-                            @QueryParam(value = SearchParameterNames.CONTENT_TYPE) final Set<String> contentTypeNames,
-                            @QueryParam(value = SearchParameterNames.INCLUDE_SUB_TYPES) final Boolean includeSubTypes,
-                            @QueryParam(value = SearchParameterNames.FILTER_QUERY) final List<String> filterQueries,
-                            @QueryParam(value = SearchParameterNames.FACET_FIELD) final List<String> facetFieldCriteria,
-                            @QueryParam(value = SearchParameterNames.FACET_QUERY) final List<String> facetQueries,
-                            @QueryParam(value = SearchParameterNames.SEARCH_HANDLER) String searchHandler,
-                            @QueryParam(value = TEMPLATE_PARAMETER) String csvTemplate)
+  @GetMapping(value="exportcsv/contentset", produces="text/csv")
+  public ResponseEntity exportCSV(@RequestParam(value = SearchParameterNames.QUERY, required = false) final String query,
+                                       @RequestParam(value = SearchParameterNames.LIMIT, required = false) final int limit,
+                                       @RequestParam(value = SearchParameterNames.ORDER_BY, required = false) final List<String> sortCriteria,
+                                       @RequestParam(value = SearchParameterNames.FOLDER, required = false) final String folderUri,
+                                       @RequestParam(value = SearchParameterNames.INCLUDE_SUB_FOLDERS, required = false) final Boolean includeSubFolders,
+                                       @RequestParam(value = SearchParameterNames.CONTENT_TYPE, required = false) final Set<String> contentTypeNames,
+                                       @RequestParam(value = SearchParameterNames.INCLUDE_SUB_TYPES, required = false) final Boolean includeSubTypes,
+                                       @RequestParam(value = SearchParameterNames.FILTER_QUERY, required = false) final List<String> filterQueries,
+                                       @RequestParam(value = SearchParameterNames.FACET_FIELD, required = false) final List<String> facetFieldCriteria,
+                                       @RequestParam(value = SearchParameterNames.FACET_QUERY, required = false) final List<String> facetQueries,
+                                       @RequestParam(value = SearchParameterNames.SEARCH_HANDLER, required = false) String searchHandler,
+                                       @RequestParam(value = TEMPLATE_PARAMETER, required = false) String csvTemplate)
           throws BadRequestException, IOException {
+
+    // Verify that the template has been set, we do this here rather than in the RequestParam so that we can give a
+    // better message than just a generic 400
+    if (csvTemplate == null || csvTemplate.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No CSV Template Parameter defined.");
+    }
+
     // Check that the user is a member of the requisite group
     if(restrictToAuthorizedGroups && !isAuthorized()) {
-      return Response.status(Response.Status.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     // Resolve parameters from request
     // COPIED FROM ContentRepositoryResource.java
     final Collection<ContentType> contentTypes = getContentTypes(contentTypeNames);
     final Content folderFilter = getFolder(folderUri);
-    final QueryUriResolver uriResolver = new QueryUriResolver(this, capObjectFormat);
+    final QueryUriResolver uriResolver = new QueryUriResolver(linkResolver, capObjectFormat);
     final List<String> resolvedFilterQueries = uriResolver.resolveUris(filterQueries);
     final List<String> resolvedFacetQueries = uriResolver.resolveUris(facetQueries);
     final List<String> resolvedSortCriteria = uriResolver.resolveUris(sortCriteria);
@@ -157,14 +176,19 @@ public class CSVExportResource extends AbstractLinkingResource {
 
     // Build response, re-using Content-Disposition header value with file name
     if(csvFileResponse.getStatus() < 300) {
-      Response.ResponseBuilder responseBuilder = Response.ok(csvFileResponse.getData(), MediaType.valueOf(CSVConstants.CSV_MEDIA_TYPE));
-      responseBuilder.status(csvFileResponse.getStatus());
       if (csvFileResponse.getContentDispositionHeaderValue() != null) {
-        responseBuilder.header(CSVConstants.HTTP_HEADER_CONTENT_DISPOSITION, csvFileResponse.getContentDispositionHeaderValue());
+        return ResponseEntity.ok()
+                .header(CSVConstants.HTTP_HEADER_CONTENT_DISPOSITION, csvFileResponse.getContentDispositionHeaderValue())
+                .contentType(MediaType.valueOf(CSVConstants.CSV_MEDIA_TYPE))
+                .body(csvFileResponse.getData());
       }
-      return responseBuilder.build();
+      return ResponseEntity.ok()
+              .contentType(MediaType.valueOf(CSVConstants.CSV_MEDIA_TYPE))
+              .body(csvFileResponse.getData());
     }
-    return Response.status(csvFileResponse.getStatus()).entity(csvFileResponse.getData()).build();
+    return ResponseEntity.status(csvFileResponse.getStatus())
+            .contentType(MediaType.valueOf(CSVConstants.CSV_MEDIA_TYPE))
+            .body(csvFileResponse.getData());
   }
 
   /**
@@ -218,11 +242,12 @@ public class CSVExportResource extends AbstractLinkingResource {
     if (folderUri == null) {
       return null;
     }
-    final Content folderFilter = (Content) resolveLink(folderUri);
+    final Content folderFilter = (Content) LinkResolverUtil.resolveLink(folderUri, linkResolver);
     if (!folderFilter.isFolder()) {
       throw new BadRequestException("invalid folderUri uri: " + folderUri);
     }
     return folderFilter;
   }
+
 
 }
