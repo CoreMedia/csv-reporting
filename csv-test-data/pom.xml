@@ -4,12 +4,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-<!--  <parent>-->
-<!--    <groupId>com.coremedia.blueprint</groupId>-->
-<!--    <artifactId>csv</artifactId>-->
-<!--    <version>1-SNAPSHOT</version>-->
-<!--  </parent>-->
-
   <groupId>com.coremedia.blueprint</groupId>
   <artifactId>csv-test-data</artifactId>
   <version>1-SNAPSHOT</version>
@@ -34,6 +28,7 @@
           <!-- Copy Content to target folder -->
           <plugin>
             <artifactId>maven-resources-plugin</artifactId>
+            <version>3.1.0</version>
             <executions>
               <execution>
                 <id>csv-copy-content-resources</id>
