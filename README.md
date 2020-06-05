@@ -39,7 +39,7 @@ studio.previewRestUrlPrefix=http://localhost:40980/blueprint/servlet
 ## URL Configuration (Docker)
 If this is being deployed using docker, the URL of the preview CAE must be configured in the properties file of the studio rest service. Add the following line to the file `studio-rest-service\src\docker\config\application.properties` in the docker deployment workspace:
 ```
-studio.previewRestUrlPrefix=http://cae-preview:40980/blueprint/servlet
+studio.previewRestUrlPrefix=https://preview${hostname.delimiter}${environment.fqdn}/blueprint/servlet
 ```
 
 ## Reporter Group
