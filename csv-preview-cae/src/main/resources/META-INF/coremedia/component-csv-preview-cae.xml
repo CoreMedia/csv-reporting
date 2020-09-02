@@ -7,6 +7,8 @@
   <import resource="classpath:/com/coremedia/blueprint/base/links/bpbase-links-services.xml"/>
   <import resource="classpath:/framework/spring/blueprint-services.xml"/>
 
+  <bean class="com.coremedia.csv.cae.utils.CSVWebSecurityConfiguration"/>
+
   <util:constant id="csvSettingsPath" static-field="com.coremedia.csv.common.CSVConfig.DEFAULT_SETTINGS_PATH" />
 
   <!-- CSV configuration -->
