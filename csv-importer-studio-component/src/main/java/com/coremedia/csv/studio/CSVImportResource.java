@@ -4,34 +4,32 @@ import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.user.Group;
 import com.coremedia.cap.user.User;
 import com.coremedia.cap.user.UserRepository;
-import com.coremedia.cotopaxi.content.ContentImpl;
 import com.coremedia.csv.common.CSVConfig;
 import com.coremedia.csv.importer.CSVParserHelper;
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.FormDataBodyPart;
-import com.sun.jersey.multipart.FormDataParam;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ResponseEntity;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
-import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.*;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
 /**
  * Handles Studio API requests for a CSV based on search parameters.
  */
-@Path("importcsv/uploadfile")
+@RequestMapping
+@RestController
 public class CSVImportResource {
 
   /**
@@ -95,28 +93,26 @@ public class CSVImportResource {
     this.authorizedGroups = authorizedGroups;
   }
 
-  @POST
-  @Consumes({"multipart/form-data"})
-  public Response importCSV(@HeaderParam("site") String siteId,
+  @PostMapping(value = "importcsv/uploadfile",
+          produces = "text/json",
+          consumes = "multipart/form-data")
+  public ResponseEntity importCSV(@HeaderParam("site") String siteId,
                             @HeaderParam("folderUri") String folderUri,
-                            @FormDataParam("contentName") String contentName,
-                            @FormDataParam("file") InputStream inputStream,
-                            @FormDataParam("file") FormDataContentDisposition fileDetail,
-                            @FormDataParam("file") FormDataBodyPart fileBodyPart) throws IOException {
-  // Check that the user is a member of the requisite group
-    if (restrictToAuthorizedGroups && !isAuthorized()) {
-      return Response.status(Response.Status.UNAUTHORIZED).build();
+                            @RequestParam("file") MultipartFile file) throws IOException {
+
+    // Check that the user is a member of the requisite group
+    if(restrictToAuthorizedGroups && !isAuthorized()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     boolean autoPublish = false;
     String template = "default";
-    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
     CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withHeader());
     CSVParserHelper handler = new CSVParserHelper(autoPublish, contentRepository, logger);
     handler.parseCSV(parser, csvConfig.getReportHeadersToContentProperties(template));
 
-
-    return Response.status(Response.Status.OK).type(MediaType.APPLICATION_JSON).entity(handler.getFirstContent()).build();
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(handler.getFirstContent());
   }
 
   private boolean isAuthorized() {

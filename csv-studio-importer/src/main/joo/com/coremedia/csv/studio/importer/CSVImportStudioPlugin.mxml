@@ -23,7 +23,10 @@
       <editor:plugins>
         <ui:AddItemsPlugin>
           <ui:items>
-            <Button itemId="btn-csvimport" text="CSV Import">
+            <Button itemId="btn-csvimport"
+                    text="CSV Import"
+                    tooltip="{ResourceManager.getInstance().getString('com.coremedia.csv.studio.importer.CSVImportStudioPlugin', 'Action_csvimport_tooltip')}"
+                    iconCls="{ResourceManager.getInstance().getString('com.coremedia.csv.studio.importer.CSVImportStudioPlugin', 'Action_csvimport_icon')}">
               <baseAction>
                 <local:OpenCSVImportDialogAction/>
               </baseAction>

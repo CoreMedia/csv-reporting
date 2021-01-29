@@ -1,4 +1,4 @@
 .csv-icon{
-  background-repeat: no-repeat;
+  background-size: contain;
   background-image: url('icons/csv-icon.png') !important;
 }
