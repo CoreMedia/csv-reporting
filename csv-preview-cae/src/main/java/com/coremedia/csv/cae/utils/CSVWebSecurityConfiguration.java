@@ -27,6 +27,7 @@ public class CSVWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
   CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.applyPermitDefaultValues();
+    configuration.setAllowCredentials(true);
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
