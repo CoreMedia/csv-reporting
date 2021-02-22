@@ -533,20 +533,23 @@ public class CSVParserHelper {
         boolean success = true;
         if (null != value) {
             StructHelper structHelper = contentHelper.getStructHelper();
-            StructBuilder structBuilder = structHelper.lookUpStructBuilderMap(structBuilderMap,
-                    propertyName);
+            StructBuilder structBuilder = content.getStruct(PROPERTY_LOCAL_SETTINGS).builder();
             if (structBuilder != null) {
                 // NOTE: If any other properties are added to the report to be uploaded for local settings - THIS WILL
                 // NEED TO BE UPDATED. We automatically convert to a String List since all current local settings
                 // properties we set ad String Lists. commerce.references and sharepoint.productkeys
-                List<String> valueArray = convertObjectStringToStringList(value);
-                List<String> existingValueArray = structHelper.getValueForSetting(propertyName,
+//                List<String> valueArray = convertObjectStringToStringList(value);
+                Object currentValue = structHelper.getValueForSetting(propertyName,
                         content);
                 // Only update if the list is not already equal to the values
-                if (!listEqualsIgnoreOrder(valueArray, existingValueArray)) {
-                    structBuilder = structHelper.addItemToStructBuilder(structBuilder,
-                            CapPropertyDescriptorType.STRING, propertyName, valueArray, true);
-                    structBuilder.build();
+                if (!value.equals(currentValue)) {
+                    structBuilder = structHelper.updateLocalSettings(content, propertyName, value, currentValue, structBuilder);
+                  if (content.isCheckedOut()) {
+                    content.checkIn();
+                  }
+                  content.checkOut();
+                  content.set("localSettings", structBuilder.build());
+//                  content.checkIn();
                 }
             } else {
                 logger.error("Unexpected error while creating or getting the structbuilder for property." +

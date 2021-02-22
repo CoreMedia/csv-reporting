@@ -97,11 +97,11 @@ public class CSVImportResource {
           produces = "text/json",
           consumes = "multipart/form-data")
   public ResponseEntity importCSV(@HeaderParam("site") String siteId,
-                            @HeaderParam("folderUri") String folderUri,
-                            @RequestParam("file") MultipartFile file) throws IOException {
+                                  @HeaderParam("folderUri") String folderUri,
+                                  @RequestParam("file") MultipartFile file) throws IOException {
 
     // Check that the user is a member of the requisite group
-    if(restrictToAuthorizedGroups && !isAuthorized()) {
+    if (restrictToAuthorizedGroups && !isAuthorized()) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
@@ -116,14 +116,14 @@ public class CSVImportResource {
   }
 
   private boolean isAuthorized() {
-    if(this.authorizedGroups == null || this.authorizedGroups.isEmpty())
+    if (this.authorizedGroups == null || this.authorizedGroups.isEmpty())
       return false;
 
     User user = contentRepository.getConnection().getSession().getUser();
     UserRepository userRepository = contentRepository.getConnection().getUserRepository();
-    for(String authorizedGroupName : authorizedGroups) {
+    for (String authorizedGroupName : authorizedGroups) {
       Group group = userRepository.getGroupByName(authorizedGroupName);
-      if(group != null && user.isMemberOf(group)) {
+      if (group != null && user.isMemberOf(group)) {
         return true;
       }
     }
