@@ -38,91 +38,47 @@ public class CSVExportResource {
   /**
    * Sends a request for a CSV file to the preview CAE.
    */
-  private CSVFileRetriever csvFileRetriever;
+  private final CSVFileRetriever csvFileRetriever;
 
   /**
    * The content repository from which to retrieve content.
    */
-  private ContentRepository contentRepository;
+  private final ContentRepository contentRepository;
 
   /**
    * The search service with which to search for content.
    */
-  private SearchService searchService;
+  private final SearchService searchService;
 
   /**
    * The formatter for resolving URIs.
    */
-  private CapObjectFormat capObjectFormat;
+  private final CapObjectFormat capObjectFormat;
 
   /**
    * Flag indicating whether access to this endpoint should be restricted to authorized groups only
    */
-  private boolean restrictToAuthorizedGroups;
+  private final boolean restrictToAuthorizedGroups;
 
   /**
    * The groups that are authorized to access this endpoint.
    */
-  private List<String> authorizedGroups;
+  private final List<String> authorizedGroups;
 
   /**
    * Resolves URI's to Domain Objects.
    */
-  @Autowired
-  private LinkResolver linkResolver;
+  private final LinkResolver linkResolver;
 
-  /**
-   * Sets the CSV file retriever.
-   *
-   * @param csvFileRetriever the content repository to set
-   */
-  public void setCsvFileRetriever(CSVFileRetriever csvFileRetriever) {
+
+  public CSVExportResource(CSVFileRetriever csvFileRetriever, ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, boolean restrictToAuthorizedGroups, List<String> authorizedGroups, LinkResolver linkResolver) {
     this.csvFileRetriever = csvFileRetriever;
-  }
-
-  /**
-   * Sets the content repository.
-   *
-   * @param contentRepository the content repository to set
-   */
-  public void setContentRepository(ContentRepository contentRepository) {
     this.contentRepository = contentRepository;
-  }
-
-  /**
-   * Sets the search service.
-   *
-   * @param searchService the search service to set
-   */
-  public void setSearchService(SearchService searchService) {
     this.searchService = searchService;
-  }
-
-  /**
-   * Sets the CapObjectFormat.
-   *
-   * @param capObjectFormat the content repository to set
-   */
-  public void setCapObjectFormat(CapObjectFormat capObjectFormat) {
     this.capObjectFormat = capObjectFormat;
-  }
-
-  /**
-   * Set the flag indicating whether access to this endpoint should be restricted to authorized groups only.
-   *
-   * @param restrictToAuthorizedGroups the value to set
-   */
-  public void setRestrictToAuthorizedGroups(boolean restrictToAuthorizedGroups) {
     this.restrictToAuthorizedGroups = restrictToAuthorizedGroups;
-  }
-
-  /**
-   * Sets the authorized groups.
-   *
-   * @param authorizedGroups the authorized groups to set
-   */
-  public void setAuthorizedGroups(List<String> authorizedGroups) {
     this.authorizedGroups = authorizedGroups;
+    this.linkResolver = linkResolver;
   }
 
   /**
