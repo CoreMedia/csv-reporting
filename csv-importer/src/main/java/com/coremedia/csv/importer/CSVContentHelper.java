@@ -4,6 +4,7 @@ import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import org.slf4j.Logger;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -16,10 +17,6 @@ public class CSVContentHelper {
      * If updated content should be automatically be published if prior version was published.
      */
     private boolean autoPublish;
-    /**
-     * Performs operations when updating Struct value properties.
-     */
-    private StructHelper structHelper;
 
     /**
      * Handles publishing content after their properties have been updated.
@@ -29,14 +26,13 @@ public class CSVContentHelper {
     /**
      * Constructor.
      *
-     * @param autoPublish               if updated content should be automatically be published if prior version was published
+     * @param autoPublish       if updated content should be automatically be published if prior version was published
      * @param contentRepository the current content repository which contains the content to be updated.
      * @param logger            logger from the tool using this helper class
      */
     public CSVContentHelper(boolean autoPublish, ContentRepository contentRepository, Logger logger) {
         this.autoPublish = autoPublish;
         this.contentPublishHelper = new ContentPublishHelper(contentRepository, logger);
-        this.structHelper = new StructHelper(contentRepository, logger);
     }
 
     /**
@@ -177,14 +173,5 @@ public class CSVContentHelper {
             }
             return lock;
         }
-    }
-
-    /**
-     * Returns the struct helper.
-     *
-     * @return the struct helper
-     */
-    public StructHelper getStructHelper() {
-        return structHelper;
     }
 }

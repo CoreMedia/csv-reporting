@@ -102,7 +102,7 @@ public class CSVImportResource {
 
     // Check that the user is a member of the requisite group
     if (restrictToAuthorizedGroups && !isAuthorized()) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User does not have authorized access");
     }
 
     boolean autoPublish = false;

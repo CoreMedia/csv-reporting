@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
                            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <import resource="classpath:/framework/spring/csv-constants.xml"/>
+    <import resource="classpath:/META-INF/coremedia/csv-constants.xml"/>
     <import resource="classpath:/com/coremedia/cae/contentbean-services.xml"/>
     <import resource="classpath:/META-INF/coremedia/commandline-tools-base.xml"/>
 

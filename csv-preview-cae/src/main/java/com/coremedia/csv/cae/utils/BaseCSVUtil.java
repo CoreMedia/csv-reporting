@@ -10,6 +10,7 @@ import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.content.Version;
 import com.coremedia.cap.content.publication.PublicationService;
+import com.coremedia.cap.struct.Struct;
 import com.coremedia.csv.common.CSVConfig;
 import com.coremedia.objectserver.beans.ContentBean;
 import com.coremedia.objectserver.beans.ContentBeanFactory;
@@ -367,7 +368,12 @@ public abstract class BaseCSVUtil {
     String link = "";
     try {
       link = linkFormatter.formatLink(bean, null, request, response, false);
-    } catch (Exception e) {
+    }
+    catch (IllegalArgumentException e) {
+      LOG.debug("The specified content with ID: {} is unable to build a proper URL link. Exception:\n",
+              getContentIdString(bean.getContent()), e);
+    }
+    catch (Exception e) {
       LOG.warn("An error occurred while trying to build the URL for content ID: {}",
               getContentIdString(bean.getContent()), e);
     }
@@ -424,16 +430,7 @@ public abstract class BaseCSVUtil {
       String propertyName = propertiesMap.get(headerField);
       Object property;
       if (propertyName != null) {
-        // We need to check if this is a local setting value. While local settings can be handled generically,
-        // they are different then regular properties. The localSettings struct needs to be parsed for the
-        // specified local settings variable
-        if (propertyName.startsWith(PROPERTY_PREFIX_LOCAL_SETTINGS)) {
-          property = evaluateLocalSettingsVariable(content, propertyName);
-        }
-        // Otherwise we can treat this as a regular property and parse the value from the content's properties
-        else {
-          property = evaluateContentProperty(content, propertyName);
-        }
+        property = evaluateContentProperty(content, propertyName);
         csvRecord.put(headerField, property.toString().trim());
       }
     }
@@ -472,60 +469,19 @@ public abstract class BaseCSVUtil {
    * Determines the value of a local setting variable.
    *
    * @param content      the content from which to determine the specified local setting variable's value
-   * @param propertyName the name/path of the local setting variable. NOTE: This should start with the string
-   *                     "localSettings" as that is the initial path of any local setting variable
-   * @return the value of the local setting variable from the content. If there is no value/local setting variable,
-   * returns an empty string. If the request local setting is for the content's product Ids, they are converted into
-   * a more readable format
-   */
-  protected String evaluateLocalSettingsVariable(Content content, String propertyName) {
-    try {
-      // First need to split off the "localSettings" from the path of the local setting variable
-      propertyName = propertyName.substring(PROPERTY_PREFIX_LOCAL_SETTINGS.length());
-      String[] values = propertyName.split("\\.");
-
-      // Parse the localSettings struct to get the value at the variable
-      Object value = getLocalSettingValue(values, content);
-
-      // If the value doesn't exist - convert to empty String
-      if (value == null) {
-        value = "";
-      }
-      return value.toString();
-    } catch (Exception e) {
-      LOG.warn("Error while evaluating local settings property " + propertyName + " for " + content, e);
-      return ERROR_VALUE;
-    }
-  }
-
-  /**
-   * Iterates through the content's settings to determine the value of specified local setting.
+   * @param propertyName the name/path of the struct variable.
    *
-   * @param settingPathSegments an array representing the navigational path segments of the variable through the local
-   *                            settings of the specified content
-   * @param content             the content from which to get the value of the specified local setting variable
-   * @return the value of the local setting variable from the content
+   * @return the String value of a Struct object after being converted to Markup. If there is no Struct content
+   * property, returns empty String.
    */
-  private Object getLocalSettingValue(String[] settingPathSegments, Content content) {
-    // If the local setting variable is a direct value and not nested within the settings, then there will only be
-    // one segment. In this event, we can return the value at the segment
-    if (settingPathSegments.length == 1) {
-      return settingsService.setting(settingPathSegments[0], Object.class, content);
-    } else {
-      // Get the structure/value of the first local setting variable in the segments
-      Object result = settingsService.settingAsMap(settingPathSegments[0], String.class, Object.class, content);
-
-      // Otherwise the value is nested in a potential series of maps. We iterate through the maps until we reach
-      // the final part of that segment. The end of the segment path will contain the value
-      Map map = (Map) result;
-      for (int i = 1; i < settingPathSegments.length; i++) {
-        result = map.get(settingPathSegments[i]);
-        if ((i + 1) < settingPathSegments.length) {
-          map = (Map) result;
-        }
-      }
-      return result;
+  protected Object evaluateStructProperty(Content content, String propertyName) {
+    Object property = getContentProperty(content, propertyName);
+    // If the value doesn't exist - convert to empty String
+    if (property instanceof Struct) {
+      property = ((Struct) property).toMarkup();
+      property = sanitizeMarkupToString((Markup) property);
     }
+    return property;
   }
 
   /**
@@ -560,6 +516,9 @@ public abstract class BaseCSVUtil {
           if (property instanceof Calendar) {
             property = dateFormat.format(((Calendar) property).getTime());
           }
+          break;
+        case STRUCT:
+          property = evaluateStructProperty(content, propertyName);
           break;
         default:
           property = getContentProperty(content, propertyName);
@@ -647,13 +606,23 @@ public abstract class BaseCSVUtil {
 
     // We check if its a Markup object here to validate that we got the property.
     if (property instanceof Markup) {
-      property = property.toString().trim();
+      property = sanitizeMarkupToString((Markup) property);
     }
-    // At this point, we are guaranteed to have a String
-    // Remove carriage returns so that our CSV doesn't error when imported
-    property = ((String) property).replaceAll("\n", "");
-    property = ((String) property).replaceAll("\r", "");
     return property;
+  }
+
+  /**
+   * Takes a Markup object and sanitizes the String so it does not break CSV parsing
+   * @param markup the markup to sanitize & convert to String
+   * @return the String value of the specified Markup, sanitized for CSV parsing.
+   */
+  private String sanitizeMarkupToString(Markup markup) {
+    String markupString = markup.toString().trim();
+
+    // Remove carriage returns so that our CSV doesn't error when imported
+    markupString = markupString.replaceAll("\n", "");
+    markupString = markupString.replaceAll("\r", "");
+    return markupString;
   }
 
 

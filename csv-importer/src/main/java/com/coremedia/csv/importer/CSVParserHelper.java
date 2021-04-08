@@ -4,10 +4,9 @@ import com.coremedia.blueprint.common.contentbeans.CMLinkable;
 import com.coremedia.cap.common.*;
 import com.coremedia.cap.content.*;
 import com.coremedia.cap.struct.Struct;
-import com.coremedia.cap.struct.StructBuilder;
+import com.coremedia.cap.struct.StructService;
 import com.coremedia.xml.Markup;
 import com.coremedia.xml.MarkupFactory;
-import com.coremedia.csv.constants.CSVConstants;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -20,7 +19,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.coremedia.csv.constants.CSVConstants.*;
+import static com.coremedia.csv.common.CSVConstants.*;
 
 /**
  * Helper class which handles the parsing of the CSV file and operations done when translating the text into meaningful
@@ -53,7 +52,10 @@ public class CSVParserHelper {
      */
     private int contentImported = 0;
 
-    private Content firstContent;
+  /**
+   * The first content updated in the CSV import.
+   */
+  private Content firstContent;
 
     /**
      * The list of currently imported contents that have not yet been published. These contents will be published later
@@ -72,11 +74,6 @@ public class CSVParserHelper {
      * content creation can run in parallel.
      **/
     protected final Map<String, Object> transitionLockByPath = new HashMap<>();
-
-    /**
-     * Contains the map of struct objects under localSettings to add the properties accordingly.
-     */
-    protected Map<String, StructBuilder> structBuilderMap = new HashMap<>();
 
     /**
      * The general date format the reporting tool will use when converting dates into Strings.
@@ -109,9 +106,13 @@ public class CSVParserHelper {
         contentRepository = originalContentRepository;
         this.logger = logger;
         contentHelper = new CSVContentHelper(autoPublish, contentRepository, logger);
+
+        // This is where you put custom property processors. This is the framework for customizations to easily create
+        // new classes to process custom properties. See PropertyValueObjectProcessor interface for implementation.
+        // Ideally, when implemented, under this line the following can be added:
+        // propertyValueObjectProcessors.put(PROPERTY_NAME, new CustomPropertyProcessor(logger));
+        // A Spring implementation can also be done for this
         propertyValueObjectProcessors = new HashedMap();
-        propertyValueObjectProcessors.put(PROPERTY_PRODUCT_IDS, new CommerceReferencesProcessor(logger));
-        propertyValueObjectProcessors.put(PROPERTY_EXTERNAL_ID, new CommerceReferenceProcessor(logger));
     }
 
     /**
@@ -162,32 +163,11 @@ public class CSVParserHelper {
                     // changes we will want to add more keys to this map
                     Map<String, Set<Content>> tagsMap = new HashMap<>();
 
-                    // Grab the initial localSettings values - as we don't want to overwrite ALL of the local
-                    // settings, just the ones for Product Ids and Unmapped Product Keys
-                    Struct localSettings = null;
-                    Struct originalLocalSettings = null;
-                    StructBuilder localSettingsStructBuilder = null;
                     int id = IdHelper.parseContentId(content.getId());
 
                     // Some content object do not have local settings, so we must account for this as getStruct will
                     // throw an exception if this is the case and fail the import
-                    if (content.getType().isSubtypeOf(CMLinkable.NAME)) {
-                        try {
-                            localSettings = content.getStruct(PROPERTY_LOCAL_SETTINGS);
-
-                            if (localSettings == null) {
-                                localSettings = contentHelper.getStructHelper().getEmptyStruct();
-                            }
-                            originalLocalSettings = localSettings;
-                            localSettingsStructBuilder = localSettings.builder();
-
-                            //reset structBuilderMap for every document
-                            initializeStructBuilderMap(localSettings);
-                        } catch (Exception e) {
-                            logger.error("Content with id {} failed to access it local settings.", id, e.getMessage());
-                            success = false;
-                        }
-                    } else {
+                    if (!content.getType().isSubtypeOf(CMLinkable.NAME)) {
                         hasLocalSettings = false;
                         logger.debug("Content with id {} does not have a local settings.", id);
                     }
@@ -199,15 +179,8 @@ public class CSVParserHelper {
                     }
 
                     if (success) {
-
-                        // We need to perform calculations on the more complex property values
-                        if (hasLocalSettings) {
-                            updateLocalSettings(recordObjectProperties, localSettings, originalLocalSettings,
-                                    localSettingsStructBuilder);
-                        }
                         updateTaxonomies(content, recordObjectProperties, parser, tagsMap);
-
-                         success = setObjectPropertiesInContent(content, recordObjectProperties);
+                        success = setObjectPropertiesInContent(content, recordObjectProperties);
 
                         if (success && !recordObjectProperties.isEmpty()) {
                           if(firstContent == null) {
@@ -259,7 +232,8 @@ public class CSVParserHelper {
                 try {
                     content = repository.getContent(contentId);
                 } catch (Exception e){
-                    logger.error("Skipping this CSV record because Unexpected Exception in getting the content using the record Id (id : " + record.get("Id") + " )", e);
+                    logger.error("Skipping this CSV record because Unexpected Exception in getting the content " +
+                            "using the record Id (id : " + record.get("Id") + " )", e);
                 }
             }
             if (content == null) {
@@ -268,7 +242,8 @@ public class CSVParserHelper {
             }
         }
         else {
-            logger.error("Skip parsing CSV for record id (" + record.get("Id") + ") because it is empty or not a valid id.");
+            logger.error("Skip parsing CSV for record id (" + record.get("Id") + ") because it is empty" +
+                    " or not a valid id.");
         }
         return content;
     }
@@ -341,47 +316,6 @@ public class CSVParserHelper {
     }
 
     /**
-     * Compares the content's local settings for commerce values with the translated values from the record and adds the
-     * updated values to the map (if needed).
-     *
-     * @param recordObjectProperties    the map of values which will be used to determine which properties of the content
-     *                                  need to be updated
-     * @param localSettings             these are the local settings that have been gathered from the CSV Record which will need to
-     *                                  be set on the content
-     * @param originalLocalSettings     these are the original local settings values for all of the content
-     * @param localSettingStructBuilder the localSettingsBuilder responsible for both holding the old values which do
-     *                                  not need to be overwritten, and the new values which need to be added
-     */
-    private void updateLocalSettings(Map<String, Object> recordObjectProperties, Struct localSettings,
-                                     Struct originalLocalSettings, StructBuilder localSettingStructBuilder) {
-        // First we want to gather all of the original properties, and then piecemeal replace all properties which
-        // were updated/added, from the structbuilder map
-        Map<String, Object> newProperties = new HashMap<>();
-        Map<String, Object> properties = localSettings.getProperties();
-        newProperties.putAll(properties);
-        for (String structKey : structBuilderMap.keySet()) {
-            StructBuilder toAdd = structBuilderMap.get(structKey);
-            if (localSettings.get(structKey) != null) {
-                newProperties.put(structKey, toAdd.build());
-            } else {
-                // We don't want to add an empty map if none existed previously
-                if (!toAdd.currentStruct().getProperties().isEmpty()) {
-                    localSettingStructBuilder = localSettingStructBuilder.declareStruct(structKey,
-                            toAdd.build());
-                }
-            }
-        }
-        localSettingStructBuilder.setAll(newProperties);
-        localSettings = localSettingStructBuilder.build();
-        // We need to verify that the local settings are different before adding them to the update
-        // content list
-        if (!localSettings.equals(originalLocalSettings)) {
-            recordObjectProperties.put(PROPERTY_LOCAL_SETTINGS, localSettings);
-        }
-    }
-
-
-    /**
      * Compares the taxonomies calculated from the CSV record to the taxonomies of the actual content and verifies
      * whether they have changed and need to be updated. If the content's taxonomies do need to be updated, they will
      * be added to the map.
@@ -398,31 +332,13 @@ public class CSVParserHelper {
         List<Content> subjectTaxonomies = contentHelper.flattenTagsMap(tagsMap);
         List<Content> existingSubjectTaxonomies = (List<Content>) content.get(PROPERTY_SUBJECT_TAGS);
         if (existingSubjectTaxonomies != null) {
-            if (parser.getHeaderMap().containsKey(CSVConstants.COLUMN_SUBJECT_TAGS) &&
+            if (parser.getHeaderMap().containsKey(COLUMN_SUBJECT_TAGS) &&
                     !listEqualsIgnoreOrder(subjectTaxonomies, existingSubjectTaxonomies)) {
                 recordObjectProperties.put(PROPERTY_SUBJECT_TAGS, subjectTaxonomies);
             }
         } else {
             int id = IdHelper.parseContentId(content.getId());
             logger.warn("Subject Taxonomies do not exist for Content with Id {}", id);
-        }
-    }
-
-
-    /**
-     * Initializes the struct builder map with localSettings of the current content.
-     *
-     * @param localSettings the localSettings of the content from which to populate the struct builder map
-     */
-    private void initializeStructBuilderMap(Struct localSettings) {
-        structBuilderMap = new HashMap<>();
-        for (Map.Entry<String, Object> property : localSettings.getProperties().entrySet()) {
-            String propertyName = property.getKey();
-            Object propertyValue = property.getValue();
-            if (propertyValue instanceof Struct) {
-                StructBuilder builder = ((Struct) propertyValue).builder();
-                structBuilderMap.put(propertyName, builder);
-            }
         }
     }
 
@@ -450,23 +366,19 @@ public class CSVParserHelper {
             try {
                 // transform the values with regards to the configured mappings
                 if (propertyValueObject != null) {
-                    Object processedPropertyValueObject = processPropertyValueObject(content, propertyName, propertyValueObject);
+                    Object processedPropertyValueObject = processPropertyValueObject(content, propertyName,
+                            propertyValueObject);
 
                     // Properties which require special handling...
                     if (propertyName.contains(PROPERTY_PREFIX_PICTURES)) {
                         success = handlePicture(content, propertyName, processedPropertyValueObject);
-                    } else if (propertyName.contains(PROPERTY_PREFIX_LOCAL_SETTINGS)) {
-                        if(!hasLocalSettings && !processedPropertyValueObject.toString().isEmpty()){
-                            success = false;
-                            logger.error("CSV Content has a local setting but the content type has no local settings.");
-                        }
-                        else{
-                            success = handleLocalSetting(content, propertyName, processedPropertyValueObject);
-                        }
-                    } else if (propertyName.equals(PROPERTY_SUBJECT_TAGS)) {
+                    }
+                    else if (propertyName.equals(PROPERTY_SUBJECT_TAGS)) {
                         success = handleTaxonomies(propertyName, tagsMap, processedPropertyValueObject);
-                    } else {
-                        success = handleRegularProperty(content, propertyName, processedPropertyValueObject, objectProperties);
+                    }
+                    else {
+                        success = handleRegularProperty(content, propertyName, processedPropertyValueObject,
+                                objectProperties);
                     }
                 }
                 // If any property fails to set - we want to break out of this loop
@@ -505,59 +417,17 @@ public class CSVParserHelper {
     }
 
     /**
-     * Handles a local setting property. Truncates the property name down to the direct name of the local setting
-     * property and handles the remaining property name as a Struct.
-     *
-     * @param content             the content to which to set the new local settings property value
-     * @param propertyName        the name of the local settings property to set. Should be in the form,
-     *                            "localSettings.PROPERTY_NAME.PROPERTY_NAME_2"
-     * @param propertyValueObject the value of that local setting property
-     * @return True if succeeded to set the local settings property in the Struct map. Else, false.
-     */
-    private boolean handleLocalSetting(Content content, String propertyName, Object propertyValueObject) {
-        String localSettingStructName = propertyName.substring(propertyName.indexOf('.') + 1);
-        return handleStructSetting(content, localSettingStructName, propertyValueObject);
-    }
-
-    /**
      * Handles a struct setting property. Ultimately, this will be put into the local settings struct builder map.
      * Assumes that the value is a string that can be turned into an array.
      *
-     * @param content      the content to which to set the new local settings property value
-     * @param propertyName the name of the local settings property to set
-     * @param value        the value of the localSettings property. Because rigth now we are only updating Product Ids and
-     *                     Unmapped Product Keys, we convert this to a String List
+     * @param value        the value of the localSettings property.
      * @return true if the local settings was successfully placed in the struct builder map. Else, false.
      */
-    private boolean handleStructSetting(Content content, String propertyName, Object value) {
-        boolean success = true;
-        if (null != value) {
-            StructHelper structHelper = contentHelper.getStructHelper();
-            StructBuilder structBuilder = content.getStruct(PROPERTY_LOCAL_SETTINGS).builder();
-            if (structBuilder != null) {
-                // NOTE: If any other properties are added to the report to be uploaded for local settings - THIS WILL
-                // NEED TO BE UPDATED. We automatically convert to a String List since all current local settings
-                // properties we set ad String Lists. commerce.references and sharepoint.productkeys
-//                List<String> valueArray = convertObjectStringToStringList(value);
-                Object currentValue = structHelper.getValueForSetting(propertyName,
-                        content);
-                // Only update if the list is not already equal to the values
-                if (!value.equals(currentValue)) {
-                    structBuilder = structHelper.updateLocalSettings(content, propertyName, value, currentValue, structBuilder);
-                  if (content.isCheckedOut()) {
-                    content.checkIn();
-                  }
-                  content.checkOut();
-                  content.set("localSettings", structBuilder.build());
-//                  content.checkIn();
-                }
-            } else {
-                logger.error("Unexpected error while creating or getting the structbuilder for property." +
-                        " Property (" + propertyName + ") will be ignored.");
-                success = false;
-            }
-        }
-        return success;
+    private Struct handleStructSetting(Object value) {
+      StructService structService = contentRepository.getConnection().getStructService();
+      Markup structMarkup = MarkupFactory.fromString((String)value);
+      Struct valueStruct = structService.fromMarkup(structMarkup);
+      return valueStruct;
     }
 
     /**
@@ -688,7 +558,7 @@ public class CSVParserHelper {
                         propertyValueObject = handleRichText(propertyValueObject);
                         break;
                     case INTEGER:
-                        propertyValueObject = new Integer(propertyValueObject.toString());
+                        propertyValueObject = Integer.parseInt(propertyValueObject.toString());
                         break;
                     case LINK:
                         // We set the property, however if he property is still null after we set it,
@@ -710,6 +580,16 @@ public class CSVParserHelper {
                         } else {
                             propertyValueObject = dateFormat.format(propertyStringValue);
                         }
+                        break;
+                    case STRUCT:
+                        if (propertyName.equals(PROPERTY_LOCAL_SETTINGS)) {
+                          if (!hasLocalSettings && !propertyValueObject.toString().isEmpty()) {
+                            logger.error("CSV Content has a local setting but the content type has no local settings.");
+                            success = false;
+                            break;
+                          }
+                        }
+                        propertyValueObject = handleStructSetting(propertyValueObject);
                         break;
                     default:
                         // Default behavior - its some kind of String so do nothing
