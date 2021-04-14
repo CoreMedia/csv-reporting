@@ -54,6 +54,7 @@
     <dependency>
       <groupId>com.coremedia.blueprint</groupId>
       <artifactId>csv-importer</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
   </dependencies>

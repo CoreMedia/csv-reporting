@@ -431,7 +431,7 @@ public abstract class BaseCSVUtil {
       Object property;
       if (propertyName != null) {
         property = evaluateContentProperty(content, propertyName);
-        csvRecord.put(headerField, property.toString().trim());
+        csvRecord.put(headerField, property.toString());
       }
     }
   }
@@ -617,7 +617,7 @@ public abstract class BaseCSVUtil {
    * @return the String value of the specified Markup, sanitized for CSV parsing.
    */
   private String sanitizeMarkupToString(Markup markup) {
-    String markupString = markup.toString().trim();
+    String markupString = markup.toString();
 
     // Remove carriage returns so that our CSV doesn't error when imported
     markupString = markupString.replaceAll("\n", "");

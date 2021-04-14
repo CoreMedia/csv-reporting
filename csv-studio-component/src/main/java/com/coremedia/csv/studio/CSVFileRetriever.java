@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -37,6 +38,7 @@ public class CSVFileRetriever {
    *
    * @param previewUrl The URL of the preview CAE
    */
+  @Value("${studio.previewUrlPrefix:}")
   public void setPreviewUrl(String previewUrl) {
     this.previewUrl = previewUrl;
   }
@@ -46,6 +48,7 @@ public class CSVFileRetriever {
    *
    * @param previewRestUrl The URL to use for calls to the preview CAE from the studio REST API
    */
+  @Value("${studio.previewRestUrlPrefix:}")
   public void setPreviewRestUrl(String previewRestUrl) {
     this.previewRestUrl = previewRestUrl;
   }
