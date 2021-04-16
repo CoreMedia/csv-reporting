@@ -16,6 +16,8 @@ import com.coremedia.objectserver.beans.ContentBean;
 import com.coremedia.objectserver.beans.ContentBeanFactory;
 import com.coremedia.objectserver.web.links.LinkFormatter;
 import com.coremedia.xml.Markup;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -23,6 +25,7 @@ import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -34,12 +37,12 @@ import static com.coremedia.csv.common.CSVConstants.*;
 /**
  * Base class for CSV utilities.
  */
-public abstract class BaseCSVUtil {
+public class CSVUtils {
 
   /**
    * The logger for the CSV Exporter Utility class.
    */
-  protected static final Logger LOG = LoggerFactory.getLogger(BaseCSVUtil.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(CSVUtils.class);
 
   /* ------- Constants ------- */
   /**
@@ -91,6 +94,7 @@ public abstract class BaseCSVUtil {
   /**
    * The content bean factory from which to create beans from requested content.
    */
+  @Inject
   protected ContentBeanFactory contentBeanFactory;
 
   /**
@@ -265,9 +269,6 @@ public abstract class BaseCSVUtil {
       // Add dynamic (Content) properties
       populateContentPropertyFields(csvRecord, content, headerList, propertiesMap);
 
-      // Add custom fields (None by default)
-      populateCustomPropertyFields(csvRecord, content, headerList);
-
       // Update record status to success if all fields were successfully set
       csvRecord.put(COLUMN_STATUS, "success");
     } catch (Exception e) {
@@ -437,20 +438,6 @@ public abstract class BaseCSVUtil {
   }
 
   /**
-   * Populates the CSV record with custom properties from the specified content. Custom properties are not innate
-   * properties of content and involve some calculation based on other content properties to derive them. This
-   * functionality is left up to subclasses (which is determined based on the request) to implement as there are no
-   * custom properties to be calculated by default.
-   *
-   * @param csvRecord  the CSV record to which to populate the properties of the content
-   * @param content    the content from which the property values will be parsed
-   * @param headerList the list of headers which determines which metadata is added to the CSV record and which
-   *                   columns will be present in the CSV
-   */
-  protected abstract void populateCustomPropertyFields(Map<String, String> csvRecord, Content content,
-                                                       List<String> headerList);
-
-  /**
    * Gets the property value of the specified property name from the specified content.
    *
    * @param content      the content from which to get the property
@@ -512,10 +499,7 @@ public abstract class BaseCSVUtil {
           property = evaluateMarkupProperty(content, propertyName);
           break;
         case DATE:
-          property = getContentProperty(content, propertyName);
-          if (property instanceof Calendar) {
-            property = dateFormat.format(((Calendar) property).getTime());
-          }
+          property = evaluateDateProperty(content, propertyName);
           break;
         case STRUCT:
           property = evaluateStructProperty(content, propertyName);
@@ -537,10 +521,25 @@ public abstract class BaseCSVUtil {
    */
   private Object evaluateLinkProperty(Content content, String propertyName) {
     Object property;
-    if (PROPERTY_SUBJECT_TAGS.equals(propertyName)) {
+    if (PROPERTY_SUBJECT_TAGS.equals(propertyName) || PROPERTY_LOCATION_TAGS.equals(propertyName)) {
       property = evaluateTagProperty(content, propertyName);
     } else {
       property = evaluateAssociatedProperty(content, propertyName);
+    }
+    return property;
+  }
+
+  /**
+   * Properly evaluates a Date property. Converts the date into a String readable date format of MM-dd-yyyy HH:mm:ss.
+   *
+   * @param content      the content from which to evaluate the date property
+   * @param propertyName the name of the date property
+   * @return the value of the specified date property
+   */
+  private Object evaluateDateProperty(Content content, String propertyName) {
+    Object property = getContentProperty(content, propertyName);
+    if (property instanceof Calendar) {
+      property = dateFormat.format(((Calendar) property).getTime());
     }
     return property;
   }
@@ -555,23 +554,34 @@ public abstract class BaseCSVUtil {
   private List<String> evaluateTagProperty(Content content, String propertyName) {
     List<Content> tags = ((List<Content>) content.get(propertyName));
     List<String> tagIds = new ArrayList<>();
-    for (Content tag : tags) {
-      ContentBean tagBean = contentBeanFactory.createBeanFor(tag, CMTaxonomy.class);
-      // TODO: Update checks here as they are no longer required with updates to createBeanFor()
-      if (tagBean instanceof CMTaxonomy) {
-        List<? extends CMTaxonomy> taxonomyPathList = ((CMTaxonomy) tagBean).getTaxonomyPathList();
-        StringBuilder prefixedCategoryPath = new StringBuilder();
+    if (tags != null) {
+      for (Content tag : tags) {
+        if (tag != null) {
+          CMTaxonomy tagBean = contentBeanFactory.createBeanFor(tag, CMTaxonomy.class);
+          if (tagBean != null) {
+            List<? extends CMTaxonomy> taxonomyPathList = tagBean.getTaxonomyPathList();
+            StringBuilder prefixedCategoryPath = new StringBuilder();
 
-        // append category hierarchy with content names as segments
-        for (CMTaxonomy taxonomyPathSegment : taxonomyPathList) {
-          prefixedCategoryPath.append(TAXONOMY_PATH_SEPARATOR).append(
-                  taxonomyPathSegment.getContent().getName());
+            // append category hierarchy with content names as segments
+            for (CMTaxonomy taxonomyPathSegment : taxonomyPathList) {
+              Content segment = taxonomyPathSegment.getContent();
+              if (segment != null) {
+                prefixedCategoryPath.append(TAXONOMY_PATH_SEPARATOR).append(
+                        segment.getName());
+              }
+              else {
+                throw new NullPointerException(String.format("One of the tag segments inside of the tag, %s, " +
+                                "in content with Id, %s, was null or not a tag. Evaluated taxonomy path list: %s",
+                        tag.getName(), getContentIdString(content), prefixedCategoryPath.toString()));
+              }
+            }
+            prefixedCategoryPath.append(TAXONOMY_PATH_SEPARATOR);
+            tagIds.add(prefixedCategoryPath.toString());
+          }
+        } else {
+          throw new NullPointerException(String.format("One of the tags inside of the tag list, %s, in content with" +
+                  " Id, %s, was null or not a tag.", propertyName, getContentIdString(content)));
         }
-        prefixedCategoryPath.append(TAXONOMY_PATH_SEPARATOR);
-        tagIds.add(prefixedCategoryPath.toString());
-      } else {
-        LOG.error(String.format("One of the documents inside of the tag list, %s, in content with Id, %s, was" +
-                " null or not a tag.", propertyName, getContentIdString(content)));
       }
     }
     return tagIds;
@@ -585,10 +595,12 @@ public abstract class BaseCSVUtil {
    * @return a List of Strings, representing the ID of each associated property
    */
   private List<String> evaluateAssociatedProperty(Content content, String propertyName) {
-    List<Content> associateds = ((List<Content>) content.get(propertyName));
+    Object associates = content.get(propertyName);
     List<String> associatedIds = new ArrayList<>();
-    for (Content associated : associateds) {
-      associatedIds.add(getContentIdString(associated));
+    if (associates instanceof List) {
+      for (Content associated : ((List<Content>) associates)) {
+        associatedIds.add(getContentIdString(associated));
+      }
     }
     return associatedIds;
   }
@@ -600,7 +612,7 @@ public abstract class BaseCSVUtil {
    * @param propertyName the name of the Markup property
    * @return the value of the specified Markup property
    */
-  protected Object evaluateMarkupProperty(Content content, String propertyName) {
+  private Object evaluateMarkupProperty(Content content, String propertyName) {
     Object property;
     property = getContentProperty(content, propertyName);
 

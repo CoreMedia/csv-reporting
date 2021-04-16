@@ -373,7 +373,7 @@ public class CSVParserHelper {
                     if (propertyName.contains(PROPERTY_PREFIX_PICTURES)) {
                         success = handlePicture(content, propertyName, processedPropertyValueObject);
                     }
-                    else if (propertyName.equals(PROPERTY_SUBJECT_TAGS)) {
+                    else if (propertyName.equals(PROPERTY_SUBJECT_TAGS) || propertyName.equals(PROPERTY_LOCATION_TAGS)) {
                         success = handleTaxonomies(propertyName, tagsMap, processedPropertyValueObject);
                     }
                     else {

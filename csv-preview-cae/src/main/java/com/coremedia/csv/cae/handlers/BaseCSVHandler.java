@@ -1,7 +1,7 @@
 package com.coremedia.csv.cae.handlers;
 
 import com.coremedia.csv.common.CSVConfig;
-import com.coremedia.csv.cae.utils.BaseCSVUtil;
+import com.coremedia.csv.cae.utils.CSVUtils;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
@@ -12,7 +12,7 @@ public abstract class BaseCSVHandler {
   /**
    * The utility class used to generate the CSV file.
    */
-  protected BaseCSVUtil CSVUtil;
+  protected CSVUtils CSVUtil;
 
   /**
    * The config class which handles the settings determining the CSV column headers
@@ -26,7 +26,7 @@ public abstract class BaseCSVHandler {
    * @param CSVUtil the Utility class to set
    */
   @Required
-  public void setCSVUtil(BaseCSVUtil CSVUtil) {
+  public void setCSVUtil(CSVUtils CSVUtil) {
     this.CSVUtil = CSVUtil;
   }
 

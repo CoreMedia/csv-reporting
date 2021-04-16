@@ -21,12 +21,12 @@
   <bean id="baseCSVHandler" abstract="true" class="com.coremedia.csv.cae.handlers.BaseCSVHandler" />
 
   <bean id="contentSetCSVHandler" class="com.coremedia.csv.cae.handlers.ContentSetCSVHandler" parent="baseCSVHandler">
-    <property name="CSVUtil" ref="contentSetCSVUtil"/>
+    <property name="CSVUtil" ref="CSVUtils"/>
     <property name="CSVConfig" ref="csvConfig"/>
   </bean>
 
   <!-- Utils for CSV exporting -->
-  <bean id="baseCSVUtil" abstract="true" class="com.coremedia.csv.cae.utils.BaseCSVUtil">
+  <bean id="CSVUtils" class="com.coremedia.csv.cae.utils.CSVUtils">
     <property name="contentRepository" ref="contentRepository"/>
     <property name="linkFormatter" ref="linkFormatter"/>
     <property name="contentBeanFactory" ref="contentBeanFactory"/>
@@ -35,7 +35,5 @@
     <property name="filenamePrefix" value="CM_ContentReport_"/>
     <property name="contentBatchPrefetchSize" value="100"/>
   </bean>
-
-  <bean id="contentSetCSVUtil" class="com.coremedia.csv.cae.utils.ContentSetCSVUtil" parent="baseCSVUtil"/>
 
 </beans>

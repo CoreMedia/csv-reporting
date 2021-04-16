@@ -82,6 +82,11 @@ public class CSVConstants {
   public static String PROPERTY_SUBJECT_TAGS = "subjectTaxonomy";
 
   /**
+   * The content's property name which holds the value of its Subject Taxonomies.
+   */
+  public static String PROPERTY_LOCATION_TAGS = "locationTaxonomy";
+
+  /**
    * The value of the local settings property.
    */
   public static String PROPERTY_LOCAL_SETTINGS = "localSettings";
