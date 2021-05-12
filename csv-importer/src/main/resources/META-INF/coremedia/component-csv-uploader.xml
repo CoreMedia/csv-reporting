@@ -15,6 +15,7 @@
       <property name="authorizedGroups">
         <list>
           <value>importer</value>
+          <value>importer@cognito</value>
         </list>
       </property>
     </bean>

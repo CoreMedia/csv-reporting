@@ -20,6 +20,7 @@
     <property name="authorizedGroups">
       <list>
         <value>reporter</value>
+        <value>reporter@cognito</value>
       </list>
     </property>
   </bean>
