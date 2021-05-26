@@ -10,6 +10,7 @@ See the “default” template for an example of how to format custom templates.
 To add a column to the CSV exporter output, simply add the desired header to the “csvHeaders” string list in the template. Additionally, the value in this new column will need to be configured. 
 ### Configuring Static Properties (Metadata)
 Metadata for a content object must be added to a CSV record via the Java code. Each supported metadata value corresponds to a preset header value, such as "Id", "Name", or "URL." See the “populateContentMetadataFields” method in BaseCSVUtil.java for examples of how to include such properties.
+For a list of all currently available metadata fields, see 'documentation' in [ReportingSettings.xml](../csv-test-data/content/Settings/Options/Settings/ReportingSettings.xml)
 ### Configuring Dynamic Properties
 Content properties may be configured dynamically through the “csvProperties” struct in a template, which maps template headers to content properties. To add a new column, create an entry with the header as the key and the property name as the value. Properties defined in a content’s local settings may be accessed through using the "localSettings" property. This will output the entire localSettings for each content reported in Markup, which gives the flexibility to add, remove, or change localSettings for content in bulk.  
 ### Configuring Custom Values
