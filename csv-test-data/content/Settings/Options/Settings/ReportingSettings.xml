@@ -3,6 +3,7 @@
 <locale>en-US</locale>
 <master/>
 <settings><Struct xmlns="http://www.coremedia.com/2008/struct" xmlns:xlink="http://www.w3.org/1999/xlink">
+<StringProperty Name="defaultImportTemplate">default</StringProperty>
 <MarkupProperty Name="documentation" RequiredGrammar="coremedia-richtext-1.0" Grammar="coremedia-richtext-1.0"><div xmlns="http://www.coremedia.com/2003/richtext-1.0" xmlns:xlink="http://www.w3.org/1999/xlink">
 <pre>CLICK ME, to read the list of the default 'cvsHeaders' you can use without a 'csvProperties'-Mapping
 Id                      =&gt; Integer.toString(IdHelper.parseContentId(content.getId()))
