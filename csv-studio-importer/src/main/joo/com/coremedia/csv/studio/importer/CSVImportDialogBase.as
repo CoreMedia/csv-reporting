@@ -28,6 +28,7 @@ public class CSVImportDialogBase extends UploadDialog {
 
   public function CSVImportDialogBase(config:CSVImportDialogBase = null) {
     super(config);
+    showFolderChooser = false; // disables the FolderChooser, as it is not used and confuses the user otherwise
   }
 
   /**
