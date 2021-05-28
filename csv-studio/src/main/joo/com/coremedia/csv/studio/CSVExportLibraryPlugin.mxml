@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <ui:NestedRulesPlugin xmlns:fx="http://ns.adobe.com/mxml/2009"
                       xmlns="exml:ext.config"
+                      xmlns:exml="http://www.jangaroo.net/exml/0.8"
                       xmlns:ui="exml:com.coremedia.ui.config"
                       xmlns:editor="exml:com.coremedia.cms.editor.sdk.config"
                       xmlns:local="exml:com.coremedia.csv.studio.config">
@@ -24,7 +25,7 @@
 
     <!-- Add to the toolbar visible from the library's repository browsing view -->
     <editor:RepositoryToolbar>
-      <editor:plugins>
+      <editor:plugins exml:mode="append">
         <ui:AddItemsPlugin>
           <ui:items>
             <!-- Add a CSV export icon to the toolbar -->

@@ -55,7 +55,7 @@ public class CSVImportResource {
   /**
    * Import process logger.
    */
-  private static Logger logger = LoggerFactory.getLogger(CSVImportResource.class);
+  private static final Logger logger = LoggerFactory.getLogger(CSVImportResource.class);
 
   /**
    * Sets the content repository.
@@ -96,8 +96,7 @@ public class CSVImportResource {
   @PostMapping(value = "importcsv/uploadfile",
           produces = "text/json",
           consumes = "multipart/form-data")
-  public ResponseEntity importCSV(@HeaderParam("site") String siteId,
-                                  @HeaderParam("folderUri") String folderUri,
+  public ResponseEntity importCSV(@RequestParam("template") String template,
                                   @RequestParam("file") MultipartFile file) throws IOException {
 
     // Check that the user is a member of the requisite group
@@ -106,7 +105,6 @@ public class CSVImportResource {
     }
 
     boolean autoPublish = false;
-    String template = "default";
     BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
     CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withHeader());
     CSVParserHelper handler = new CSVParserHelper(autoPublish, contentRepository, logger);

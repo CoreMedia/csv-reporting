@@ -3,6 +3,47 @@
 <locale>en-US</locale>
 <master/>
 <settings><Struct xmlns="http://www.coremedia.com/2008/struct" xmlns:xlink="http://www.w3.org/1999/xlink">
+<StringProperty Name="defaultImportTemplate">default</StringProperty>
+<MarkupProperty Name="documentation" RequiredGrammar="coremedia-richtext-1.0" Grammar="coremedia-richtext-1.0"><div xmlns="http://www.coremedia.com/2003/richtext-1.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+<pre>CLICK ME, to read the list of the default 'cvsHeaders' you can use without a 'csvProperties'-Mapping
+Id                      =&gt; Integer.toString(IdHelper.parseContentId(content.getId()))
+Name                    =&gt; content.getName()
+Path                    =&gt; content.getPath()
+URL                     =&gt; linkFormatter.formatLink(contentBean, null, request, response, false)
+Type                    =&gt; content.getType().getName()
+CreationDate            =&gt; content.getCreationDate()
+CreatedBy               =&gt; content.getCreator().getName()
+LastModificationDate    =&gt; content.getModificationDate()
+LastModifiedBy          =&gt; content.getModifier().getName()
+VersionStatus           =&gt; see below
+PublicationDate         =&gt; contentRepository.getPublicationService().getPublicationDate(content)
+
+protected String getContentVersionStatusString(Content content) {
+  PublicationService publicationService = contentRepository.getPublicationService();
+  String status = "";
+  if (content.isCheckedOut()) {
+    status = "Checked Out";
+  } else {
+    Version version = content.getWorkingVersion();
+    if (version == null) {
+      version = content.getCheckedInVersion();
+    }
+    if (version != null) {
+      status = "Checked In";
+      if (publicationService.isApproved(version)) {
+        status = "Approved";
+      }
+      if (publicationService.isPublished(version)) {
+        status = "Published";
+      }
+    }
+    if (publicationService.isNew(content)) {
+      status = "Created";
+    }
+  }
+  return status;
+}
+</pre></div></MarkupProperty>
 <StructProperty Name="templates">
 <Struct>
 <StructProperty Name="default">
