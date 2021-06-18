@@ -52,6 +52,7 @@
         <version>${jangaroo.version}</version>
         <extensions>true</extensions>
         <configuration>
+          <extNamespace>com.coremedia.csv.studio</extNamespace>
           <namespaces>
             <namespace>
               <uri>exml:com.coremedia.csv.studio.config</uri>
