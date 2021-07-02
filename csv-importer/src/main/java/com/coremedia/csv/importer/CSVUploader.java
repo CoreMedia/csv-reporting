@@ -234,7 +234,7 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
             logger.info("CSVParser: executing ...");
             csvHandler.parseCSV(parser, reportHeadersToContentProperties);
             logger.info("CSVParser: Completed content upload.");
-          } catch (IOException e) {
+          } catch (Exception e) {
             getLogger().error(String.format(ERROR_PARSING_CSV, e.getMessage(), e));
           }
         }
@@ -274,10 +274,10 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
         logger.info("CSVParser: executing ...");
         csvHandler.parseCSV(parser, reportHeadersToContentProperties);
         logger.info("CSVParser: Completed content upload.");
-      } catch (IOException e) {
+      } catch (Exception e) {
         getLogger().error(String.format(ERROR_PARSING_CSV, e.getMessage(), e));
       }
-  }
+    }
 
     /**
      * Sets the report headers to content properties map.

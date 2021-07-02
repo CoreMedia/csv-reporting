@@ -4,7 +4,6 @@ import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import org.slf4j.Logger;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**

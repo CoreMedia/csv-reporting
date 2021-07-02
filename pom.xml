@@ -22,5 +22,6 @@
     <module>csv-studio-component</module>
     <module>csv-studio-importer</module>
     <module>csv-test-data</module>
+    <module>csv-test-util</module>
   </modules>
 </project>

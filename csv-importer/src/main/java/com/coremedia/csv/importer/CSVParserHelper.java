@@ -1,20 +1,19 @@
 package com.coremedia.csv.importer;
 
-import com.coremedia.blueprint.common.contentbeans.CMLinkable;
 import com.coremedia.cap.common.*;
 import com.coremedia.cap.content.*;
 import com.coremedia.cap.struct.Struct;
 import com.coremedia.cap.struct.StructService;
 import com.coremedia.xml.Markup;
 import com.coremedia.xml.MarkupFactory;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
-import java.io.UnsupportedEncodingException;
+import javax.naming.ConfigurationException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -46,6 +45,11 @@ public class CSVParserHelper {
      * The root folder which contains all subject taxonomies in the content.
      */
     private Content subjectTaxonomyRootFolder;
+
+  /**
+   * The root folder which contains all location taxonomies in the content.
+   */
+  private Content locationTaxonomyRootFolder;
 
     /**
      * Counter for the number of individual content updates imported.
@@ -126,13 +130,13 @@ public class CSVParserHelper {
      *                                         content
      * @return true if the entire CSV contents were updated and imported successfully. Else, false.
      */
-    public void parseCSV(CSVParser parser, Map<String, String> reportHeadersToContentProperties) {
+    public void parseCSV(CSVParser parser, Map<String, String> reportHeadersToContentProperties) throws Exception {
 
         instantiateTaxonomyProperties();
         for (CSVRecord record : parser) {
 
             // reset success boolean - success will be calculated per record
-            boolean success = true;
+            boolean success;
 
             // reset hasLocalSettings - hasLocalSettings will be calculated per record
             hasLocalSettings = true;
@@ -156,38 +160,15 @@ public class CSVParserHelper {
                     Map<String, String> recordStringProperties = generateRecordPropertiesMap(
                             reportHeadersToContentProperties, record.toMap());
 
-                    // This map is the final properties that are to be uploaded to the content
-                    Map<String, Object> recordObjectProperties = new HashedMap();
+                    // Converts all String properties to their respective objects
+                    Map<String, Object> updatedProperties = convertStringProperties(content, recordStringProperties);
+                    success = setObjectPropertiesInContent(content, updatedProperties);
 
-                    // This is the map of tags. Currently this map will only contain Subject taxonomies, but if this
-                    // changes we will want to add more keys to this map
-                    Map<String, Set<Content>> tagsMap = new HashMap<>();
-
-                    int id = IdHelper.parseContentId(content.getId());
-
-                    // Some content object do not have local settings, so we must account for this as getStruct will
-                    // throw an exception if this is the case and fail the import
-                    if (!content.getType().isSubtypeOf(CMLinkable.NAME)) {
-                        hasLocalSettings = false;
-                        logger.debug("Content with id {} does not have a local settings.", id);
-                    }
-
-                    if (success) {
-                        // Converts all String properties to their respective objects
-                        success = convertStringProperties(content, recordStringProperties, recordObjectProperties,
-                                tagsMap);
-                    }
-
-                    if (success) {
-                        updateTaxonomies(content, recordObjectProperties, parser, tagsMap);
-                        success = setObjectPropertiesInContent(content, recordObjectProperties);
-
-                        if (success && !recordObjectProperties.isEmpty()) {
-                          if(firstContent == null) {
-                            firstContent = content;
-                          }
-                            contentImported++;
-                        }
+                    if (success && !updatedProperties.isEmpty()) {
+                      if(firstContent == null) {
+                        firstContent = content;
+                      }
+                        contentImported++;
                     }
                 }
             }
@@ -201,19 +182,26 @@ public class CSVParserHelper {
      *
      * @return true if the configured content is present for taxonomies. Else, false.
      */
-    protected boolean instantiateTaxonomyProperties() {
-        boolean success = true;
+    protected void instantiateTaxonomyProperties() {
         //check tag folder
         String subjectTaxonomyRootPath = "/Settings/Taxonomies/Subject";
         subjectTaxonomyRootFolder = contentRepository.getChild(subjectTaxonomyRootPath);
         if (subjectTaxonomyRootFolder == null || !subjectTaxonomyRootFolder.isFolder()) {
             logger.error("Taxonomy root path (" + subjectTaxonomyRootPath + ") can't be found in repository" +
                     " or is not a folder. (content: " + subjectTaxonomyRootFolder + ")");
-            success = false;
         } else {
             logger.info("Taxonomy root path is registered: " + subjectTaxonomyRootPath);
         }
-        return success;
+
+        String locationTaxonomyRootPath = "/Settings/Taxonomies/Location";
+        locationTaxonomyRootFolder = contentRepository.getChild(locationTaxonomyRootPath);
+        if (locationTaxonomyRootFolder == null || !locationTaxonomyRootFolder.isFolder()) {
+          logger.error("Taxonomy root path (" + subjectTaxonomyRootPath + ") can't be found in repository" +
+                  " or is not a folder. (content: " + locationTaxonomyRootFolder + ")");
+        } else {
+          logger.info("Taxonomy root path is registered: " + locationTaxonomyRootPath);
+        }
+
     }
 
     /**
@@ -352,15 +340,14 @@ public class CSVParserHelper {
      * @param content                the content for which to update its properties
      * @param recordStringProperties the mapping of the property names and their string values, which are to be
      *                               converted
-     * @param objectProperties       the mapping of property names and their respective object values, which is to be
-     *                               populated
-     * @param tagsMap                the mapping of tags for the specified content object that is to be updated
      * @return true if all properties were converted successfully. Else, false.
      */
-    private boolean convertStringProperties(Content content, Map<String, String> recordStringProperties,
-                                            Map<String, Object> objectProperties, Map<String, Set<Content>> tagsMap) {
-        boolean success = true;
-        for (Map.Entry<String, String> entry : recordStringProperties.entrySet()) {
+    private Map<String, Object> convertStringProperties(Content content, Map<String, String> recordStringProperties)
+            throws Exception {
+
+      // This map is the final properties that are to be uploaded to the content
+      Map<String, Object> updatedProperties = new HashMap();
+      for (Map.Entry<String, String> entry : recordStringProperties.entrySet()) {
             String propertyName = entry.getKey();
             Object propertyValueObject = entry.getValue();
             try {
@@ -368,36 +355,29 @@ public class CSVParserHelper {
                 if (propertyValueObject != null) {
                     Object processedPropertyValueObject = processPropertyValueObject(content, propertyName,
                             propertyValueObject);
+                  Object existingProperty = content.get(propertyName);
 
-                    // Properties which require special handling...
-                    if (propertyName.contains(PROPERTY_PREFIX_PICTURES)) {
-                        success = handlePicture(content, propertyName, processedPropertyValueObject);
+                  // Here we need to make sure that null and empty are treated the same in regards to updating
+                  // That this means is that if the property value object isn't equal to null (which means that the
+                  // existing property is null) and if it is empty... then we do nothing, because CSV cannot give us
+                  // null values for properties that do not exist and any properties set in the content to null by
+                  // default must be set
+                  if (existingProperty != null || !processedPropertyValueObject.toString().isEmpty()) {
+                    processedPropertyValueObject = convertObjectToPropertyValue(content, propertyName,
+                            processedPropertyValueObject);
+                    if (!Objects.equals(existingProperty, processedPropertyValueObject)) {
+                      updatedProperties.put(propertyName, processedPropertyValueObject);
                     }
-                    else if (propertyName.equals(PROPERTY_SUBJECT_TAGS) || propertyName.equals(PROPERTY_LOCATION_TAGS)) {
-                        success = handleTaxonomies(propertyName, tagsMap, processedPropertyValueObject);
-                    }
-                    else {
-                        success = handleRegularProperty(content, propertyName, processedPropertyValueObject,
-                                objectProperties);
-                    }
-                }
-                // If any property fails to set - we want to break out of this loop
-                if (!success) {
-                    break;
+                  }
                 }
             } catch (Exception e) {
-                logger.error("Unexpected Exception in document (id : " + content.getId() + ", property: " +
-                        propertyName + ")", e);
-                success = false;
+                throw new Exception(String.format("Unexpected Exception in document (id : %s, property: %s)\n%s",
+                        content.getId(), propertyName, e.getMessage()));
             } finally {
                 logger.debug("End mapping of property " + propertyName);
             }
         }
-        if (!success) {
-            logger.error(String.format("An error has occurred while updating content %s. This record" +
-                    " has been skipped.", content.getId()));
-        }
-        return success;
+        return updatedProperties;
     }
 
     /**
@@ -423,7 +403,7 @@ public class CSVParserHelper {
      * @param value        the value of the localSettings property.
      * @return true if the local settings was successfully placed in the struct builder map. Else, false.
      */
-    private Struct handleStructSetting(Object value) {
+    private Struct convertToStruct(Object value) {
       StructService structService = contentRepository.getConnection().getStructService();
       Markup structMarkup = MarkupFactory.fromString((String)value);
       Struct valueStruct = structService.fromMarkup(structMarkup);
@@ -467,60 +447,37 @@ public class CSVParserHelper {
     /**
      * Sets the value of a taxonomies property.
      *
-     * @param propertyName the name of the property which to set in the content
-     * @param tagsMap      the map of tags which consolidate all tags and is set to the content
      * @param value        the value of the content's taxonomies. The toString() method of this object should return a
      *                     String in the form of "[/path/of/tag1/,/path/of/tag2/,/path/of/tag3/]"
      * @return True if all specified tags existed and were set properly in the tags map. else, false.
      */
-    private boolean handleTaxonomies(String propertyName, Map<String, Set<Content>> tagsMap, Object value) {
-        boolean success = true;
-        if (value != null) {
-            List<String> taxonomies = convertObjectStringToStringList(value);
-            for (String taxonomyString : taxonomies) {
-                success = handleTaxonomy(propertyName, tagsMap, taxonomyString.trim());
-                // If any taxonomy fails to be set, we need to break and return false.
-                if (!success) {
-                    break;
-                }
-            }
-        }
-        return success;
+    private List<Content> convertToTaxonomyList(List<String> value, Content taxonomyRootFolder) throws ConfigurationException {
+      List<Content> convertedTaxonomies = new ArrayList<>();
+      for (String taxonomyString : value) {
+          convertedTaxonomies.add(convertToTaxonomy(taxonomyString.trim(), taxonomyRootFolder));
+      }
+      return convertedTaxonomies;
     }
 
     /**
      * Retrieves a taxonomy at the specified path and if it exists, adds it into the specified mapping of tags.
      *
-     * @param propertyName the name of the property to have its tags set
-     * @param tagsMap      the map of tags which will be updated with a new taxonomy
      * @param value        the relative path of the tags, starting from the root tag (i.e. Subjects)
      * @return True if the tag was successfully set into the tags map. Else, false.
      */
-    private boolean handleTaxonomy(String propertyName, Map<String, Set<Content>> tagsMap, String value) {
-        boolean success = true;
-        if (null != value) {
-            //get correct tags list, based on target Property
-            Set<Content> tagListForTargetProperty = tagsMap.get(propertyName);
-            if (tagListForTargetProperty == null) {
-                tagListForTargetProperty = new HashSet<>();
-            }
-            if (subjectTaxonomyRootFolder != null) {
-                Content taxonomy = contentHelper.establishTax(value, subjectTaxonomyRootFolder);
-                if (taxonomy != null) {
-                    tagListForTargetProperty.add(taxonomy);
-                    tagsMap.put(propertyName, tagListForTargetProperty);
-                } else {
-                    // We need to error out if the tag does not exist
-                    logger.error(String.format("Could not find Taxonomy with path %s.", value));
-                    success = false;
-                }
-            } else {
-                logger.error("Taxonomy properties have not been configured correctly. " +
-                        "Taxonomy values cannot be updated.");
-                success = false;
-            }
-        }
-        return success;
+    private Content convertToTaxonomy(@NonNull String value, Content taxonomyRootFolder) throws ConfigurationException {
+      if (taxonomyRootFolder != null) {
+        Content taxonomy = contentHelper.establishTax(value, taxonomyRootFolder);
+          if (taxonomy != null) {
+            return taxonomy;
+          } else {
+              // We need to error out if the tag does not exist
+            throw new NullPointerException(String.format("Could not find Taxonomy with path %s", value));
+          }
+      } else {
+          throw new ConfigurationException("Taxonomy properties have not been configured correctly. " +
+                  "Taxonomy values cannot be updated.");
+      }
     }
 
     /**
@@ -529,95 +486,71 @@ public class CSVParserHelper {
      * succeeds in being converted to the correct type of the found property (by name), it will add the property name
      * and the converted property object to the specified map.
      *
-     * @param content             the content to which to set the property
+     * @param content             the content for which to set the property
      * @param propertyName        the name of the property to set
-     * @param propertyValueObject the value of the property to set
-     * @param objectProperties    the mapping of properties that will be used to update the content
+     * @param propertyObject the value of the property to set
      * @return true if it succeeds to find the property, convert the object correctly to the expected type, and add it
      * to the map. Else, false.
-     * @throws ParseException               if an exception occurs when parsing a date property
-     * @throws UnsupportedEncodingException if an exception occurs while parsing a Markup/rich text property
      */
-    private boolean handleRegularProperty(Content content, String propertyName, Object propertyValueObject,
-                                          Map<String, Object> objectProperties) throws ParseException,
-            UnsupportedEncodingException {
-        boolean success = true;
-        Object existingProperty = content.get(propertyName);
-
-        // Here we need to make sure that null and empty are treated the same in regards to updating
-        // That this means is that if the property value object isn't equal to null (which means that the
-        // existing property is null) and if it is empty... then we do nothing, because CSV cannot give us
-        // null values for properties that do not exist and any properties set in the content to null by
-        // default must be set
-        if (existingProperty != null || !propertyValueObject.toString().isEmpty()) {
-            CapPropertyDescriptor propertyDescriptor = content.getType().getDescriptor(propertyName);
-            if (propertyDescriptor != null) {
-                CapPropertyDescriptorType type = propertyDescriptor.getType();
-                switch (type) {
-                    case MARKUP:
-                        propertyValueObject = handleRichText(propertyValueObject);
-                        break;
-                    case INTEGER:
-                        propertyValueObject = Integer.parseInt(propertyValueObject.toString());
-                        break;
-                    case LINK:
-                        // We set the property, however if he property is still null after we set it,
-                        // that means that the content repository could not find this content
-                        // This is an error, and should be reported
-                        String valueForError = propertyValueObject.toString();
-                        propertyValueObject = handleLink(propertyValueObject);
-                        if (propertyValueObject == null) {
-                            logger.error(String.format("Could not find Link property, %s, with value %s, for " +
-                                    "content %s.", propertyName, valueForError, content.getId()));
-                            success = false;
-                        }
-                        break;
-                    case DATE:
-                        // If the data for the column is empty - this means that its equal to null/empty
-                        String propertyStringValue = propertyValueObject.toString();
-                        if (propertyStringValue.isEmpty()) {
-                            propertyValueObject = null;
-                        } else {
-                            propertyValueObject = dateFormat.format(propertyStringValue);
-                        }
-                        break;
-                    case STRUCT:
-                        if (propertyName.equals(PROPERTY_LOCAL_SETTINGS)) {
-                          if (!hasLocalSettings && !propertyValueObject.toString().isEmpty()) {
-                            logger.error("CSV Content has a local setting but the content type has no local settings.");
-                            success = false;
-                            break;
-                          }
-                        }
-                        propertyValueObject = handleStructSetting(propertyValueObject);
-                        break;
-                    default:
-                        // Default behavior - its some kind of String so do nothing
-                        break;
-                }
-                // Only add if we succeeded in getting the property
-                if (success) {
-                    // only apply the setting if we know they are different values
-                    if (!Objects.equals(existingProperty, propertyValueObject)) {
-                        objectProperties.put(propertyName, propertyValueObject);
-                    }
-                }
-            }
-        }
-        return success;
+    protected Object convertObjectToPropertyValue(Content content, String propertyName, Object propertyObject)
+            throws Exception {
+      CapPropertyDescriptor propertyDescriptor = content.getType().getDescriptor(propertyName);
+      if (propertyDescriptor != null) {
+          CapPropertyDescriptorType type = propertyDescriptor.getType();
+          switch (type) {
+              case MARKUP:
+                propertyObject = convertToRichText(propertyObject);
+                  break;
+              case INTEGER:
+                propertyObject = Integer.parseInt(propertyObject.toString());
+                  break;
+              case LINK:
+                propertyObject = convertToLink(propertyName, propertyObject);
+                break;
+              case DATE:
+                propertyObject = convertToDate(propertyObject);
+                  break;
+              case STRUCT:
+                propertyObject = convertToStruct(propertyObject);
+                  break;
+              default:
+                  // Default behavior - its some kind of String so do nothing
+                  break;
+          }
+      }
+      return propertyObject;
     }
 
-    /**
-     * Handles converting a property object into rich text. If the passed in value does not contain
-     * the proper XML prefix, it will be automatically added, converted to markup, and returned. Else, if it is a String
-     * that is properly formatted CoreMedia XML Grammar, then return the String converted to markup. If an Empty String
-     * is passed in, returns null.
-     *
-     * @param value the property value to which to convert into rich text
-     * @return The converted rich text value of the object
-     * @throws UnsupportedEncodingException if an error occurs converting the Object value into rich text.
-     */
-    private Markup handleRichText(Object value) throws UnsupportedEncodingException {
+  /**
+   * Converts the propertyObject into a Date. If the property object is empty, then returns null.
+   * @param propertyObject the object which to convert into a Date object
+   *
+   * @return an Object, which is a Date
+   */
+  private Object convertToDate(Object propertyObject) throws ParseException {
+    Calendar calendar = Calendar.getInstance();
+    String propertyStringValue = propertyObject.toString();
+
+    // If the data for the column is empty - this means that its equal to null/empty
+    if (propertyStringValue.isEmpty()) {
+      propertyObject = null;
+    } else {
+      calendar.setTime(dateFormat.parse(propertyStringValue));
+      propertyObject = calendar;
+    }
+    return propertyObject;
+  }
+
+  /**
+   * Handles converting a property object into rich text. If the passed in value does not contain
+   * the proper XML prefix, it will be automatically added, converted to markup, and returned. Else, if it is a String
+   * that is properly formatted CoreMedia XML Grammar, then return the String converted to markup. If an Empty String
+   * is passed in, returns null.
+   *
+   * @param value the property value to which to convert into rich text
+   * @return The converted rich text value of the object
+   */
+    private Markup convertToRichText(Object value) {
         Markup markup = null;
         if (value != null) {
             String encodedValue = value.toString();
@@ -643,88 +576,36 @@ public class CSVParserHelper {
      * @param value the id of the content for which to fetch in the content repository
      * @return the list with the specified link content. Returns null if no content is found.
      */
-    private Object handleLink(Object value) {
-        List<Content> linkContent = new ArrayList<Content>();
-        if (value != null) {
-            List<String> links = convertObjectStringToStringList(value);
+    private Object convertToLink(String propertyName, Object value) throws Exception {
+      List<Content> linkContent = new ArrayList<Content>();
+      if (value != null) {
+          List<String> links = convertObjectStringToStringList(value);
+          if (PROPERTY_SUBJECT_TAGS.equals(propertyName)) {
+            linkContent.addAll(convertToTaxonomyList(links, subjectTaxonomyRootFolder));
+          }
+          else if (PROPERTY_LOCATION_TAGS.equals(propertyName)) {
+            linkContent.addAll(convertToTaxonomyList(links, locationTaxonomyRootFolder));
+          }
+          else {
             for (String valueString : links) {
-                if (StringUtils.isNumeric(valueString)) {
-                    int contentId = IdHelper.parseContentId(valueString);
-                    linkContent.add(contentRepository.getContent(Integer.toString(contentId)));
+              if (StringUtils.isNumeric(valueString)) {
+                int contentId = IdHelper.parseContentId(valueString);
+                Content content = contentRepository.getContent(Integer.toString(contentId));
+                if (content != null) {
+                  linkContent.add(content);
                 }
                 else {
-                    logger.warn(String.format("Link is not a valid id: " + valueString));
+                  logger.warn(String.format("Could not find content with ID %s, while trying to import " +
+                          "it from the CSV header, %s.", contentId, propertyName));
                 }
+              }
+              else {
+                throw new Exception("Link is not a valid id: " + valueString);
+              }
             }
-        }
-
-        return linkContent;
-    }
-
-    /**
-     * Handles setting a property on the main picture of the content.
-     *
-     * @param content      The content which will have its main picture updated
-     * @param propertyName the name of the property of the picture. Should be in the form "pictures.PICTURE_PROPERTY"
-     * @param value        the value of the picture property
-     */
-    private boolean handlePicture(Content content, String propertyName, Object value) {
-        boolean success = true;
-        List<Content> pictures = (List<Content>) content.get(PROPERTY_PICTURES);
-
-        if (pictures != null) {
-            if (!pictures.isEmpty()) {
-                logger.info(String.format("Retrieving the picture of content with Id %s.", content.getId()));
-                propertyName = propertyName.substring(propertyName.indexOf(".") + 1);
-                Content mainPicture = pictures.get(0);
-                if (mainPicture != null) {
-
-                    // In the same fashion, we can call the same conversion and setting subroutines that we are using
-                    // for the parent content on the picture.
-                    Map<String, String> pictureStringProperties = new HashMap<>();
-                    pictureStringProperties.put(propertyName, value.toString());
-                    Map<String, Object> pictureProperties = new HashMap<>();
-                    Map<String, Set<Content>> pictureTagsMap = new HashMap<>();
-                    logger.info(String.format("Setting property %s on the main picture (id: %s) of content (id: %s)",
-                            propertyName, mainPicture.getId(), content.getId()));
-                    success = convertStringProperties(mainPicture, pictureStringProperties, pictureProperties,
-                            pictureTagsMap);
-                    if (success) {
-                        success = setObjectPropertiesInContent(mainPicture, pictureProperties);
-                        if (!success) {
-                            logger.error(String.format("An error occurred setting properties on picture content with" +
-                                            " id %s.",
-                                    content.getId()));
-                        }
-                    }
-                }
-                // Edge case: if the CSV has a value for a pictures property - but the content itself's picture has been
-                // set to null - then this is an error and should be reported back
-                else if (value != null && !value.toString().isEmpty()) {
-                    logger.error(String.format("Could not set pictures property on the content's picture." +
-                                    "\nReason: Content Id %s has a null picture - cannot set properties.",
-                            content.getId()));
-                    success = false;
-                }
-            }
-            // Edge case: if the CSV has a value for a pictures property - but the content itself has no pictures to
-            // which to set properties - then this is an error and should be reported back
-            else if (value != null && !value.toString().isEmpty()) {
-                logger.error(String.format("Could not set pictures property on the content's picture." +
-                                "\nReason: Content Id %s does not have any pictures for which to set properties.",
-                        content.getId()));
-                success = false;
-            }
-        }
-        // Edge case: if the CSV has a value for a pictures property - but the content itself does not have a pictures
-        // property - then this is an error and should be reported back
-        else if (value != null && !value.toString().isEmpty()) {
-            logger.error(String.format("Could not set pictures property on the content's picture." +
-                            "\nReason: Content Id %s does not a picture property for which to set values.",
-                    content.getId()));
-            success = false;
-        }
-        return success;
+          }
+      }
+      return linkContent;
     }
 
     /**

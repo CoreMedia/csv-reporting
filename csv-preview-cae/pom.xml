@@ -101,6 +101,12 @@
       <groupId>com.coremedia.cms</groupId>
       <artifactId>cap-client-base</artifactId>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>csv-test-util</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>

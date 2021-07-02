@@ -12,7 +12,6 @@ import com.coremedia.cap.content.publication.PublicationService;
 import com.coremedia.cap.content.publication.PublicationSet;
 import com.coremedia.cap.content.publication.results.PublicationResult;
 import com.coremedia.cap.content.publication.results.PublicationResultItem;
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
