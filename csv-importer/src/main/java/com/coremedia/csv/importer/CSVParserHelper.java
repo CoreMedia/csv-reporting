@@ -42,16 +42,6 @@ public class CSVParserHelper {
     private CSVContentHelper contentHelper;
 
     /**
-     * The root folder which contains all subject taxonomies in the content.
-     */
-    private Content subjectTaxonomyRootFolder;
-
-  /**
-   * The root folder which contains all location taxonomies in the content.
-   */
-  private Content locationTaxonomyRootFolder;
-
-    /**
      * Counter for the number of individual content updates imported.
      */
     private int contentImported = 0;
@@ -131,8 +121,6 @@ public class CSVParserHelper {
      * @return true if the entire CSV contents were updated and imported successfully. Else, false.
      */
     public void parseCSV(CSVParser parser, Map<String, String> reportHeadersToContentProperties) throws Exception {
-
-        instantiateTaxonomyProperties();
         for (CSVRecord record : parser) {
 
             // reset success boolean - success will be calculated per record
@@ -174,34 +162,6 @@ public class CSVParserHelper {
             }
         }
         performFinalImport();
-    }
-
-    /**
-     * Instantiates the taxonomy properties that are needed when updating taxonomies in the content. Checks to verify
-     * that the head folder for subject taxonomies exist and saves the content object of that folder.
-     *
-     * @return true if the configured content is present for taxonomies. Else, false.
-     */
-    protected void instantiateTaxonomyProperties() {
-        //check tag folder
-        String subjectTaxonomyRootPath = "/Settings/Taxonomies/Subject";
-        subjectTaxonomyRootFolder = contentRepository.getChild(subjectTaxonomyRootPath);
-        if (subjectTaxonomyRootFolder == null || !subjectTaxonomyRootFolder.isFolder()) {
-            logger.error("Taxonomy root path (" + subjectTaxonomyRootPath + ") can't be found in repository" +
-                    " or is not a folder. (content: " + subjectTaxonomyRootFolder + ")");
-        } else {
-            logger.info("Taxonomy root path is registered: " + subjectTaxonomyRootPath);
-        }
-
-        String locationTaxonomyRootPath = "/Settings/Taxonomies/Location";
-        locationTaxonomyRootFolder = contentRepository.getChild(locationTaxonomyRootPath);
-        if (locationTaxonomyRootFolder == null || !locationTaxonomyRootFolder.isFolder()) {
-          logger.error("Taxonomy root path (" + subjectTaxonomyRootPath + ") can't be found in repository" +
-                  " or is not a folder. (content: " + locationTaxonomyRootFolder + ")");
-        } else {
-          logger.info("Taxonomy root path is registered: " + locationTaxonomyRootPath);
-        }
-
     }
 
     /**
@@ -301,33 +261,6 @@ public class CSVParserHelper {
         }
 
         return contentPropertiesAndValues;
-    }
-
-    /**
-     * Compares the taxonomies calculated from the CSV record to the taxonomies of the actual content and verifies
-     * whether they have changed and need to be updated. If the content's taxonomies do need to be updated, they will
-     * be added to the map.
-     *
-     * @param content                the respective content in the repository to the CSV record
-     * @param recordObjectProperties the map of properties which to update the content
-     * @param parser                 the CSV parser which verifies the record entry for the content's taxonomies
-     * @param tagsMap                the map of taxonomies calculated from the CSV record
-     */
-    private void updateTaxonomies(Content content, Map<String, Object> recordObjectProperties, CSVParser parser,
-                                  Map<String, Set<Content>> tagsMap) {
-        // We need to verify that the tags are different before adding them to the update content
-        // list
-        List<Content> subjectTaxonomies = contentHelper.flattenTagsMap(tagsMap);
-        List<Content> existingSubjectTaxonomies = (List<Content>) content.get(PROPERTY_SUBJECT_TAGS);
-        if (existingSubjectTaxonomies != null) {
-            if (parser.getHeaderMap().containsKey(COLUMN_SUBJECT_TAGS) &&
-                    !listEqualsIgnoreOrder(subjectTaxonomies, existingSubjectTaxonomies)) {
-                recordObjectProperties.put(PROPERTY_SUBJECT_TAGS, subjectTaxonomies);
-            }
-        } else {
-            int id = IdHelper.parseContentId(content.getId());
-            logger.warn("Subject Taxonomies do not exist for Content with Id {}", id);
-        }
     }
 
     /**
@@ -445,42 +378,6 @@ public class CSVParserHelper {
     }
 
     /**
-     * Sets the value of a taxonomies property.
-     *
-     * @param value        the value of the content's taxonomies. The toString() method of this object should return a
-     *                     String in the form of "[/path/of/tag1/,/path/of/tag2/,/path/of/tag3/]"
-     * @return True if all specified tags existed and were set properly in the tags map. else, false.
-     */
-    private List<Content> convertToTaxonomyList(List<String> value, Content taxonomyRootFolder) throws ConfigurationException {
-      List<Content> convertedTaxonomies = new ArrayList<>();
-      for (String taxonomyString : value) {
-          convertedTaxonomies.add(convertToTaxonomy(taxonomyString.trim(), taxonomyRootFolder));
-      }
-      return convertedTaxonomies;
-    }
-
-    /**
-     * Retrieves a taxonomy at the specified path and if it exists, adds it into the specified mapping of tags.
-     *
-     * @param value        the relative path of the tags, starting from the root tag (i.e. Subjects)
-     * @return True if the tag was successfully set into the tags map. Else, false.
-     */
-    private Content convertToTaxonomy(@NonNull String value, Content taxonomyRootFolder) throws ConfigurationException {
-      if (taxonomyRootFolder != null) {
-        Content taxonomy = contentHelper.establishTax(value, taxonomyRootFolder);
-          if (taxonomy != null) {
-            return taxonomy;
-          } else {
-              // We need to error out if the tag does not exist
-            throw new NullPointerException(String.format("Could not find Taxonomy with path %s", value));
-          }
-      } else {
-          throw new ConfigurationException("Taxonomy properties have not been configured correctly. " +
-                  "Taxonomy values cannot be updated.");
-      }
-    }
-
-    /**
      * Handles a regular content property. Find's the property descriptor of the specified property (by name) and then
      * handles how that property should be set from the specified property value object. If the property value object
      * succeeds in being converted to the correct type of the found property (by name), it will add the property name
@@ -580,13 +477,6 @@ public class CSVParserHelper {
       List<Content> linkContent = new ArrayList<Content>();
       if (value != null) {
           List<String> links = convertObjectStringToStringList(value);
-          if (PROPERTY_SUBJECT_TAGS.equals(propertyName)) {
-            linkContent.addAll(convertToTaxonomyList(links, subjectTaxonomyRootFolder));
-          }
-          else if (PROPERTY_LOCATION_TAGS.equals(propertyName)) {
-            linkContent.addAll(convertToTaxonomyList(links, locationTaxonomyRootFolder));
-          }
-          else {
             for (String valueString : links) {
               if (StringUtils.isNumeric(valueString)) {
                 int contentId = IdHelper.parseContentId(valueString);
@@ -604,7 +494,6 @@ public class CSVParserHelper {
               }
             }
           }
-      }
       return linkContent;
     }
 

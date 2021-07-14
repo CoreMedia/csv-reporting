@@ -16,15 +16,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.ConfigurationException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 
 import static com.coremedia.cap.common.CapPropertyDescriptorType.*;
-import static com.coremedia.csv.common.CSVConstants.PROPERTY_LOCATION_TAGS;
-import static com.coremedia.csv.common.CSVConstants.PROPERTY_SUBJECT_TAGS;
-import static java.util.Calendar.FEBRUARY;
 import static org.mockito.Mockito.*;
 
 public class CSVParserHelperTest {
@@ -35,9 +34,6 @@ public class CSVParserHelperTest {
   private ContentRepositoryImpl contentRepository;
   private StructServiceImpl structService;
   private Logger logger;
-  private Content subjectTaxonomiesRootFolder;
-  private Content locationTaxonomiesRootFolder;
-
 
   @Before
   public void setup() {
@@ -61,11 +57,6 @@ public class CSVParserHelperTest {
     when(contentRepository.getDocumentContentType()).thenReturn(documentContentType);
 
     when(contentRepository.getContentType(IdHelper.formatContentTypeId(ContentType.CONTENT))).thenReturn(contentContentType);
-
-    subjectTaxonomiesRootFolder = csvTestHelper.generateFolderWithPath("/Settings/Taxonomies/Subject",
-            contentRepository, null);
-    locationTaxonomiesRootFolder = csvTestHelper.generateFolderWithPath("/Settings/Taxonomies/Location",
-            contentRepository, null);
 
     csvParserHelper = new CSVParserHelper(false, contentRepository, logger);
   }
@@ -290,7 +281,7 @@ public class CSVParserHelperTest {
     expectedPropertyValue.add(linkContent2);
     expectedPropertyValue.add(linkContent3);
 
-    // Because linked content in the report comes in the form of an array with content IDs (sans taxonomies), we need to
+    // Because linked content in the report comes in the form of an array with content IDs, we need to
     // set this to the content and test for equality on the content added into the content repo
     List<Integer> linkedContentIds = new ArrayList<>();
     linkedContentIds.add(IdHelper.parseContentId(linkContent1.getId()));
@@ -317,7 +308,7 @@ public class CSVParserHelperTest {
 
     List<Content> expectedPropertyValue = new ArrayList<>();
 
-    // Because linked content in the report comes in the form of an array with content IDs (sans taxonomies), we need to
+    // Because linked content in the report comes in the form of an array with content IDs, we need to
     // set this to the content and test for equality on the content added into the content repo
     List<Integer> linkedContentIds = new ArrayList<>();
 
@@ -352,7 +343,7 @@ public class CSVParserHelperTest {
     ArrayList<Content> expectedPropertyArray = new ArrayList<>();
     expectedPropertyArray.add(expectedPropertyValue);
 
-    // Because linked content in the report comes in the form of an array with content IDs (sans taxonomies), we need to
+    // Because linked content in the report comes in the form of an array with content IDs, we need to
     // set this to the content and test for equality on the content added into the content repo
     Integer linkedContentId = IdHelper.parseContentId(expectedPropertyValue.getId());
 
@@ -376,7 +367,7 @@ public class CSVParserHelperTest {
     List<Content> expectedPropertyValue = new ArrayList<>();
     expectedPropertyValue.add(linkContent1);
 
-    // Because linked content in the report comes in the form of an array with content IDs (sans taxonomies), we need to
+    // Because linked content in the report comes in the form of an array with content IDs, we need to
     // set this to the content and test for equality on the content added into the content repo
     List<Integer> linkedContentIds = new ArrayList<>();
     linkedContentIds.add(IdHelper.parseContentId(linkContent1.getId()));
@@ -406,7 +397,7 @@ public class CSVParserHelperTest {
     expectedPropertyValue.add(linkContent2);
     expectedPropertyValue.add(linkContent3);
 
-    // Because linked content in the report comes in the form of an array with content IDs (sans taxonomies), we need to
+    // Because linked content in the report comes in the form of an array with content IDs, we need to
     // set this to the content and test for equality on the content added into the content repo
     List<Integer> badLinkedContentIds = new ArrayList<>();
     badLinkedContentIds.add(IdHelper.parseContentId(linkContent1.getId()));
@@ -420,251 +411,6 @@ public class CSVParserHelperTest {
     Assert.assertEquals(result.toString(), expectedPropertyValue.toString());
 
     // TODO: Check message was logged
-  }
-
-
-  // TODO: We actually don't verify that the content we are getting are actually tags! Just if they have a name and children...
-  @Test
-  public void convertObjectToPropertyValueTestLinkSubjectTags() throws Exception {
-    csvParserHelper.instantiateTaxonomyProperties();
-
-    Content exampleTag = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag");
-    Content exampleTag2 = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag2");
-    when(exampleTag.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(exampleTag2)));
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "tag2");
-    when(tag1.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(tag2)));
-    when(tag1.get("children")).thenReturn(new ArrayList<>(Collections.singletonList(tag2)));
-
-    Content tag3 = csvTestHelper.generateContentWithFunction(Content::getName, "tag3");
-    Content tag4 = csvTestHelper.generateContentWithFunction(Content::getName, "tag4");
-    when(tag3.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(tag4)));
-    when(tag3.get("children")).thenReturn(new ArrayList<>(Collections.singletonList(tag4)));
-
-    ArrayList<Content> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add(tag2);
-    expectedPropertyValue.add(tag4);
-
-    Set<Content> subjectTaxChildren = subjectTaxonomiesRootFolder.getChildren();
-    subjectTaxChildren.add(tag1);
-    subjectTaxChildren.add(tag3);
-
-    when(subjectTaxonomiesRootFolder.getChildren()).thenReturn(subjectTaxChildren);
-    when(subjectTaxonomiesRootFolder.get("children")).thenReturn(subjectTaxChildren);
-
-    String insertedPropertyValue = "[/tag1/tag2,/tag3/tag4]";
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, exampleTag,
-            contentRepository);
-
-    Object result = csvParserHelper.convertObjectToPropertyValue(testContent, PROPERTY_SUBJECT_TAGS,
-            insertedPropertyValue);
-
-    Assert.assertEquals(expectedPropertyValue.toString(), result.toString());
-  }
-
-  @Test
-  public void convertObjectToPropertyValueTestLinkLocationTags() throws Exception {
-    csvParserHelper.instantiateTaxonomyProperties();
-
-    Content exampleTag = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag");
-    Content exampleTag2 = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag2");
-    when(exampleTag.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(exampleTag2)));
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "tag2");
-    when(tag1.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(tag2)));
-    when(tag1.get("children")).thenReturn(new ArrayList<>(Collections.singletonList(tag2)));
-
-    Content tag3 = csvTestHelper.generateContentWithFunction(Content::getName, "tag3");
-    Content tag4 = csvTestHelper.generateContentWithFunction(Content::getName, "tag4");
-    when(tag3.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(tag4)));
-    when(tag3.get("children")).thenReturn(new ArrayList<>(Collections.singletonList(tag4)));
-
-    ArrayList<Content> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add(tag2);
-    expectedPropertyValue.add(tag4);
-
-    Set<Content> subjectTaxChildren = locationTaxonomiesRootFolder.getChildren();
-    subjectTaxChildren.add(tag1);
-    subjectTaxChildren.add(tag3);
-
-    when(locationTaxonomiesRootFolder.getChildren()).thenReturn(subjectTaxChildren);
-    when(locationTaxonomiesRootFolder.get("children")).thenReturn(subjectTaxChildren);
-
-    String insertedPropertyValue = "[/tag1/tag2,/tag3/tag4]";
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_LOCATION_TAGS, LINK, exampleTag,
-            contentRepository);
-
-    Object result = csvParserHelper.convertObjectToPropertyValue(testContent, PROPERTY_LOCATION_TAGS,
-            insertedPropertyValue);
-
-    Assert.assertEquals(expectedPropertyValue.toString(), result.toString());
-  }
-
-  @Test
-  public void convertObjectToPropertyValueTestLinkSubjectTagsSingleTagNoArray() throws Exception {
-    csvParserHelper.instantiateTaxonomyProperties();
-
-    Content exampleTag = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag");
-    Content exampleTag2 = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag2");
-    when(exampleTag.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(exampleTag2)));
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    when(tag1.getChildren()).thenReturn(new HashSet<>(Collections.emptyList()));
-    when(tag1.get("children")).thenReturn(new ArrayList<>(Collections.emptyList()));
-
-    ArrayList<Content> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add(tag1);
-
-    Set<Content> subjectTaxChildren = subjectTaxonomiesRootFolder.getChildren();
-    subjectTaxChildren.add(tag1);
-
-    when(subjectTaxonomiesRootFolder.getChildren()).thenReturn(subjectTaxChildren);
-    when(subjectTaxonomiesRootFolder.get("children")).thenReturn(subjectTaxChildren);
-
-    String insertedPropertyValue = "tag1";
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, exampleTag,
-            contentRepository);
-
-    Object result = csvParserHelper.convertObjectToPropertyValue(testContent, PROPERTY_SUBJECT_TAGS,
-            insertedPropertyValue);
-
-    Assert.assertEquals(expectedPropertyValue.toString(), result.toString());
-  }
-
-  @Test
-  public void convertObjectToPropertyValueTestLinkSubjectTagsSingleTagArray() throws Exception {
-    csvParserHelper.instantiateTaxonomyProperties();
-
-    Content exampleTag = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag");
-    Content exampleTag2 = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag2");
-    when(exampleTag.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(exampleTag2)));
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    when(tag1.getChildren()).thenReturn(new HashSet<>(Collections.emptyList()));
-    when(tag1.get("children")).thenReturn(new ArrayList<>(Collections.emptyList()));
-
-    ArrayList<Content> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add(tag1);
-
-    Set<Content> subjectTaxChildren = subjectTaxonomiesRootFolder.getChildren();
-    subjectTaxChildren.add(tag1);
-
-    when(subjectTaxonomiesRootFolder.getChildren()).thenReturn(subjectTaxChildren);
-    when(subjectTaxonomiesRootFolder.get("children")).thenReturn(subjectTaxChildren);
-
-    String insertedPropertyValue = "[tag1]";
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, exampleTag,
-            contentRepository);
-
-    Object result = csvParserHelper.convertObjectToPropertyValue(testContent, PROPERTY_SUBJECT_TAGS,
-            insertedPropertyValue);
-
-    Assert.assertEquals(expectedPropertyValue.toString(), result.toString());
-  }
-
-  @Test(expected = ConfigurationException.class)
-  public void convertObjectToPropertyValueTestLinkSubjectTagsBadConfiguration() throws Exception {
-    Content exampleTag = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag");
-    Content exampleTag2 = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag2");
-    when(exampleTag.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(exampleTag2)));
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "tag2");
-    when(tag1.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(tag2)));
-    when(tag1.get("children")).thenReturn(new ArrayList<>(Collections.singletonList(tag2)));
-
-    Content tag3 = csvTestHelper.generateContentWithFunction(Content::getName, "tag3");
-    Content tag4 = csvTestHelper.generateContentWithFunction(Content::getName, "tag4");
-    when(tag3.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(tag4)));
-    when(tag3.get("children")).thenReturn(new ArrayList<>(Collections.singletonList(tag4)));
-
-    ArrayList<Content> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add(tag2);
-    expectedPropertyValue.add(tag4);
-
-    Set<Content> subjectTaxChildren = subjectTaxonomiesRootFolder.getChildren();
-    subjectTaxChildren.add(tag1);
-    subjectTaxChildren.add(tag3);
-
-    when(subjectTaxonomiesRootFolder.getChildren()).thenReturn(subjectTaxChildren);
-    when(subjectTaxonomiesRootFolder.get("children")).thenReturn(subjectTaxChildren);
-
-    String insertedPropertyValue = "[/tag1/tag2,/tag3/tag4]";
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, exampleTag,
-            contentRepository);
-
-    Object result = csvParserHelper.convertObjectToPropertyValue(testContent, PROPERTY_SUBJECT_TAGS,
-            insertedPropertyValue);
-
-    Assert.assertEquals(expectedPropertyValue.toString(), result.toString());
-  }
-
-  @Test
-  public void convertObjectToPropertyValueTestLinkSubjectTagsEmptyList() throws Exception {
-    csvParserHelper.instantiateTaxonomyProperties();
-
-    Content exampleTag = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag");
-    Content exampleTag2 = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag2");
-    when(exampleTag.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(exampleTag2)));
-
-    ArrayList<Content> expectedPropertyValue = new ArrayList<>();
-
-    Set<Content> subjectTaxChildren = subjectTaxonomiesRootFolder.getChildren();
-
-    when(subjectTaxonomiesRootFolder.getChildren()).thenReturn(subjectTaxChildren);
-    when(subjectTaxonomiesRootFolder.get("children")).thenReturn(subjectTaxChildren);
-
-    String insertedPropertyValue = "[]";
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, exampleTag,
-            contentRepository);
-
-    Object result = csvParserHelper.convertObjectToPropertyValue(testContent, PROPERTY_SUBJECT_TAGS,
-            insertedPropertyValue);
-
-    Assert.assertEquals(expectedPropertyValue.toString(), result.toString());
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void convertObjectToPropertyValueTestLinkSubjectTagsWithNullContent() throws Exception {
-    csvParserHelper.instantiateTaxonomyProperties();
-
-    Content exampleTag = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag");
-    Content exampleTag2 = csvTestHelper.generateContentWithFunction(Content::getName, "exampleTag2");
-    when(exampleTag.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(exampleTag2)));
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-
-    Content tag3 = csvTestHelper.generateContentWithFunction(Content::getName, "tag3");
-    Content tag4 = csvTestHelper.generateContentWithFunction(Content::getName, "tag4");
-    when(tag3.getChildren()).thenReturn(new HashSet<>(Collections.singletonList(tag4)));
-    when(tag3.get("children")).thenReturn(new ArrayList<>(Collections.singletonList(tag4)));
-
-    Set<Content> subjectTaxChildren = subjectTaxonomiesRootFolder.getChildren();
-    subjectTaxChildren.add(tag1);
-    subjectTaxChildren.add(tag3);
-
-    when(subjectTaxonomiesRootFolder.getChildren()).thenReturn(subjectTaxChildren);
-    when(subjectTaxonomiesRootFolder.get("children")).thenReturn(subjectTaxChildren);
-
-    String insertedPropertyValue = "[/tag1/tag2,/tag3/tag4]";
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, exampleTag,
-            contentRepository);
-
-    csvParserHelper.convertObjectToPropertyValue(testContent, PROPERTY_SUBJECT_TAGS, insertedPropertyValue);
-  }
-
-  // TODO: Rip out the Tags testing... there is no way to delimit different tags based on the name in a way that is acceptable
-  public void convertObjectToPropertyValueTestLinkSubjectTagsUnicodeCharacters() throws Exception {
-
   }
 
   // --- Date Tests ---------------------------------------------------------------------------------

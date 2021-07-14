@@ -1,7 +1,6 @@
 package com.coremedia.csv.cae.utils;
 
 import com.coremedia.blueprint.base.settings.SettingsService;
-import com.coremedia.blueprint.common.contentbeans.CMTaxonomy;
 import com.coremedia.cap.common.CapPropertyDescriptor;
 import com.coremedia.cap.common.CapPropertyDescriptorType;
 import com.coremedia.cap.common.IdHelper;
@@ -47,11 +46,6 @@ public class CSVUtils {
    * Value to output when an error is encountered.
    */
   private static final String ERROR_VALUE = "Error";
-
-  /**
-   * Path separator used when building the taxonomy paths.
-   */
-  private static final String TAXONOMY_PATH_SEPARATOR = "/";
 
   /**
    * Version status when the content has been Approved.
@@ -367,12 +361,10 @@ public class CSVUtils {
     String link = "";
     try {
       link = linkFormatter.formatLink(bean, null, request, response, false);
-    }
-    catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException e) {
       LOG.debug("The specified content with ID: {} is unable to build a proper URL link. Exception:\n",
               getContentIdString(bean.getContent()), e);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       LOG.warn("An error occurred while trying to build the URL for content ID: {}",
               getContentIdString(bean.getContent()), e);
     }
@@ -455,7 +447,6 @@ public class CSVUtils {
    *
    * @param content      the content from which to determine the specified local setting variable's value
    * @param propertyName the name/path of the struct variable.
-   *
    * @return the String value of a Struct object after being converted to Markup. If there is no Struct content
    * property, returns empty String.
    */
@@ -510,21 +501,21 @@ public class CSVUtils {
   }
 
   /**
-   * Properly evaluates a Link property. Contains special handling cases if the link is for the Subject Taxonomy
-   * property.
+   * Properly evaluates a Link property.
    *
    * @param content      the content from which to evaluate the link property
    * @param propertyName the name of the link property
    * @return the value of the specified link property
    */
   private Object evaluateLinkProperty(Content content, String propertyName) {
-    Object property;
-    if (PROPERTY_SUBJECT_TAGS.equals(propertyName) || PROPERTY_LOCATION_TAGS.equals(propertyName)) {
-      property = evaluateTagProperty(content, propertyName);
-    } else {
-      property = evaluateAssociatedProperty(content, propertyName);
+    Object associates = content.get(propertyName);
+    List<String> associatedIds = new ArrayList<>();
+    if (associates instanceof List) {
+      for (Content associated : ((List<Content>) associates)) {
+        associatedIds.add(getContentIdString(associated));
+      }
     }
-    return property;
+    return associatedIds;
   }
 
   /**
@@ -540,67 +531,6 @@ public class CSVUtils {
       property = dateFormat.format(((Calendar) property).getTime());
     }
     return property;
-  }
-
-  /**
-   * Properly evaluates a Link property which is a Tag list.
-   *
-   * @param content      the content from which the tags will be evaluated
-   * @param propertyName the name of the tag list property of the content
-   * @return a List of Strings, representing the tag path of each taxonomy in the specified property
-   */
-  private List<String> evaluateTagProperty(Content content, String propertyName) {
-    List<Content> tags = ((List<Content>) content.get(propertyName));
-    List<String> tagIds = new ArrayList<>();
-    if (tags != null) {
-      for (Content tag : tags) {
-        if (tag != null) {
-          CMTaxonomy tagBean = contentBeanFactory.createBeanFor(tag, CMTaxonomy.class);
-          if (tagBean != null) {
-            List<? extends CMTaxonomy> taxonomyPathList = tagBean.getTaxonomyPathList();
-            StringBuilder prefixedCategoryPath = new StringBuilder();
-
-            // append category hierarchy with content names as segments
-            for (CMTaxonomy taxonomyPathSegment : taxonomyPathList) {
-              Content segment = taxonomyPathSegment.getContent();
-              if (segment != null) {
-                prefixedCategoryPath.append(TAXONOMY_PATH_SEPARATOR).append(
-                        segment.getName());
-              }
-              else {
-                throw new NullPointerException(String.format("One of the tag segments inside of the tag, %s, " +
-                                "in content with Id, %s, was null or not a tag. Evaluated taxonomy path list: %s",
-                        tag.getName(), getContentIdString(content), prefixedCategoryPath.toString()));
-              }
-            }
-            prefixedCategoryPath.append(TAXONOMY_PATH_SEPARATOR);
-            tagIds.add(prefixedCategoryPath.toString());
-          }
-        } else {
-          throw new NullPointerException(String.format("One of the tags inside of the tag list, %s, in content with" +
-                  " Id, %s, was null or not a tag.", propertyName, getContentIdString(content)));
-        }
-      }
-    }
-    return tagIds;
-  }
-
-  /**
-   * Properly evaluates a associated property and return the Id.
-   *
-   * @param content      the content from which the associated property will be evaluated
-   * @param propertyName the name of the associated property of the content
-   * @return a List of Strings, representing the ID of each associated property
-   */
-  private List<String> evaluateAssociatedProperty(Content content, String propertyName) {
-    Object associates = content.get(propertyName);
-    List<String> associatedIds = new ArrayList<>();
-    if (associates instanceof List) {
-      for (Content associated : ((List<Content>) associates)) {
-        associatedIds.add(getContentIdString(associated));
-      }
-    }
-    return associatedIds;
   }
 
   /**
@@ -623,6 +553,7 @@ public class CSVUtils {
 
   /**
    * Takes a Markup object and sanitizes the String so it does not break CSV parsing
+   *
    * @param markup the markup to sanitize & convert to String
    * @return the String value of the specified Markup, sanitized for CSV parsing.
    */
@@ -648,7 +579,7 @@ public class CSVUtils {
   /**
    * Scrubs csvRecord and sets the content id and status to fail.
    *
-   * @param content the content on which the failure occurred
+   * @param content   the content on which the failure occurred
    * @param csvRecord the record for the failed content
    */
   private void handleBadRecord(Content content, Map<String, String> csvRecord) {

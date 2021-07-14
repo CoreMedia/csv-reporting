@@ -27,13 +27,12 @@
       <artifactId>mockito-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.coremedia.blueprint</groupId>
-      <artifactId>contentbeans</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.coremedia.cms</groupId>
+      <artifactId>coremedia-xml</artifactId>
     </dependency>
     <dependency>
       <groupId>com.coremedia.cms</groupId>
-      <artifactId>coremedia-xml</artifactId>
+      <artifactId>cap-client-base</artifactId>
     </dependency>
 
   </dependencies>

@@ -98,7 +98,7 @@ public class CSVImportResource {
           consumes = "multipart/form-data")
   public ResponseEntity importCSV(@HeaderParam("site") String siteId,
                                   @HeaderParam("folderUri") String folderUri,
-                                  @RequestParam("file") MultipartFile file) throws IOException {
+                                  @RequestParam("file") MultipartFile file) throws Exception {
 
     // Check that the user is a member of the requisite group
     if (restrictToAuthorizedGroups && !isAuthorized()) {

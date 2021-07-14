@@ -8,22 +8,18 @@ import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.content.ContentType;
 import com.coremedia.objectserver.beans.ContentBean;
-import com.coremedia.objectserver.beans.ContentBeanFactory;
 import com.coremedia.xml.Markup;
 import com.coremedia.xml.MarkupFactory;
-import static org.mockito.Mockito.*;
-import com.coremedia.blueprint.cae.contentbeans.CMTaxonomyImpl;
-import com.coremedia.blueprint.common.contentbeans.CMTaxonomy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CSVTestHelper {
-  private List<CMTaxonomy> currentTaxonomyPathList = new ArrayList<>();
 
   public Content generateContentWithProperty(String propertyName, CapPropertyDescriptorType propertyType,
                                              Object propertyValue, ContentRepository contentRepository) {
@@ -55,29 +51,6 @@ public class CSVTestHelper {
     return bean;
   }
 
-  public CMTaxonomy generateCMTaxonomy(Content content) {
-    CMTaxonomyImpl taxonomy = generateContentBean(CMTaxonomyImpl.class, content);
-    currentTaxonomyPathList.add(taxonomy);
-    List<CMTaxonomy> tempList = new ArrayList<>(currentTaxonomyPathList);
-    doReturn(tempList).when(taxonomy).getTaxonomyPathList();
-    return taxonomy;
-  }
-
-  public ContentBeanFactory generateContentBeanFactory(Map<String, List<Content>> taxonomyStructure) {
-    ContentBeanFactory factory = mock(ContentBeanFactory.class);
-
-    for (String taxSet : taxonomyStructure.keySet()) {
-      List<Content> taxonomies = taxonomyStructure.get(taxSet);
-      for (Content taxonomy : taxonomies) {
-        CMTaxonomy tax = generateCMTaxonomy(taxonomy);
-        when(factory.createBeanFor(taxonomy, CMTaxonomy.class)).thenReturn(tax);
-      }
-      resetCurrentTaxonomyPathList();
-    }
-
-    return factory;
-  }
-
   public Markup toMarkup(String testString) {
     Markup markup = null;
     if (testString != null) {
@@ -96,10 +69,6 @@ public class CSVTestHelper {
 //    inject(injectionTarget, blobConverter);
 //    return blobConverter;
 //  }
-
-  private void resetCurrentTaxonomyPathList() {
-    currentTaxonomyPathList = new ArrayList<>();
-  }
 
   private int generateRandomContentId() {
     return new Random().nextInt(1000);

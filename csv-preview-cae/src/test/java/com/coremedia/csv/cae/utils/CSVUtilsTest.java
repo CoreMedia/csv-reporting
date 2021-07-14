@@ -8,23 +8,21 @@ import com.coremedia.cap.struct.StructBuilder;
 import com.coremedia.cotopaxi.common.CapConnectionImpl;
 import com.coremedia.cotopaxi.content.ContentRepositoryImpl;
 import com.coremedia.cotopaxi.struct.StructServiceImpl;
-import com.coremedia.objectserver.beans.ContentBeanFactory;
+import com.coremedia.csv.test.CSVTestHelper;
 import com.coremedia.xml.Markup;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 import static com.coremedia.cap.common.CapPropertyDescriptorType.*;
-import static com.coremedia.csv.common.CSVConstants.PROPERTY_LOCATION_TAGS;
-import static com.coremedia.csv.common.CSVConstants.PROPERTY_SUBJECT_TAGS;
-import static com.coremedia.elastic.core.test.Injection.inject;
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.NOVEMBER;
 import static org.mockito.Mockito.*;
-import com.coremedia.csv.test.CSVTestHelper;
 
 public class CSVUtilsTest {
 
@@ -56,7 +54,7 @@ public class CSVUtilsTest {
 
 // --- evaluateContentProperty() Tests ---------------------------------------------------------------------------------
 
-//  --- General Tests ---
+  //  --- General Tests ---
   @Test
   public void evaluateContentPropertyTest() {
     String expectedPropertyValue = "Sunny Day";
@@ -84,7 +82,7 @@ public class CSVUtilsTest {
     Assert.assertEquals(expectedPropertyValue, returnedProperty);
   }
 
-//  --- Link Tests ---
+  //  --- Link Tests ---
   @Test
   public void evaluateContentPropertyTestLink() {
     // Null values since it doesn't matter here
@@ -140,210 +138,6 @@ public class CSVUtilsTest {
     String propertyName = "children";
     Content testContent = csvTestHelper.generateContentWithProperty(propertyName, LINK, linkedContent, contentRepository);
     Object returnedProperty = csvUtils.evaluateContentProperty(testContent, propertyName);
-    Assert.assertEquals(expectedPropertyValue.toString(), returnedProperty.toString());
-  }
-
-//  --- Subject Tag Tests --
-  @Test
-  public void evaluateContentPropertyTestLinkSubjectTags() {
-    Map<String, List<Content>> taxonomyStructure = new HashMap<>();
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "tag2");
-    Content tag3 = csvTestHelper.generateContentWithFunction(Content::getName, "tag3");
-
-    List<Content> firstSetList = new ArrayList<>();
-    firstSetList.add(tag1);
-    firstSetList.add(tag2);
-    firstSetList.add(tag3);
-
-    taxonomyStructure.put("firstSet", firstSetList);
-
-    Content tag4 = csvTestHelper.generateContentWithFunction(Content::getName, "tag4");
-    Content tag5 = csvTestHelper.generateContentWithFunction(Content::getName, "tag5");
-    Content tag6 = csvTestHelper.generateContentWithFunction(Content::getName, "tag6");
-
-    List<Content> secondSetList = new ArrayList<>();
-    secondSetList.add(tag4);
-    secondSetList.add(tag5);
-    secondSetList.add(tag6);
-
-    taxonomyStructure.put("secondSet", secondSetList);
-
-    ContentBeanFactory testTaxonomyFactory = csvTestHelper.generateContentBeanFactory(taxonomyStructure);
-
-    inject(csvUtils, testTaxonomyFactory);
-
-    List<Content> testTaxonomies = new ArrayList<>();
-    testTaxonomies.add(tag3);
-    testTaxonomies.add(tag5);
-    testTaxonomies.add(tag6);
-
-    List<String> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add("/tag1/tag2/tag3/");
-    expectedPropertyValue.add("/tag4/tag5/");
-    expectedPropertyValue.add("/tag4/tag5/tag6/");
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, testTaxonomies, contentRepository);
-    Object returnedProperty = csvUtils.evaluateContentProperty(testContent, PROPERTY_SUBJECT_TAGS);
-    Assert.assertEquals(expectedPropertyValue.toString(), returnedProperty.toString());
-  }
-
-  @Test
-  public void evaluateContentPropertyTestLinkLocationTags() {
-    Map<String, List<Content>> taxonomyStructure = new HashMap<>();
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "tag2");
-    Content tag3 = csvTestHelper.generateContentWithFunction(Content::getName, "tag3");
-
-    List<Content> firstSetList = new ArrayList<>();
-    firstSetList.add(tag1);
-    firstSetList.add(tag2);
-    firstSetList.add(tag3);
-
-    taxonomyStructure.put("firstSet", firstSetList);
-
-    Content tag4 = csvTestHelper.generateContentWithFunction(Content::getName, "tag4");
-    Content tag5 = csvTestHelper.generateContentWithFunction(Content::getName, "tag5");
-    Content tag6 = csvTestHelper.generateContentWithFunction(Content::getName, "tag6");
-
-    List<Content> secondSetList = new ArrayList<>();
-    secondSetList.add(tag4);
-    secondSetList.add(tag5);
-    secondSetList.add(tag6);
-
-    taxonomyStructure.put("secondSet", secondSetList);
-
-    ContentBeanFactory testTaxonomyFactory = csvTestHelper.generateContentBeanFactory(taxonomyStructure);
-
-    inject(csvUtils, testTaxonomyFactory);
-
-    List<Content> testTaxonomies = new ArrayList<>();
-    testTaxonomies.add(tag3);
-    testTaxonomies.add(tag5);
-    testTaxonomies.add(tag6);
-
-    List<String> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add("/tag1/tag2/tag3/");
-    expectedPropertyValue.add("/tag4/tag5/");
-    expectedPropertyValue.add("/tag4/tag5/tag6/");
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_LOCATION_TAGS, LINK, testTaxonomies, contentRepository);
-    Object returnedProperty = csvUtils.evaluateContentProperty(testContent, PROPERTY_LOCATION_TAGS);
-    Assert.assertEquals(expectedPropertyValue.toString(), returnedProperty.toString());
-  }
-
-  @Test
-  public void evaluateContentPropertyTestLinkSubjectTagsNull() {
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, null, contentRepository);
-    Object returnedProperty = csvUtils.evaluateContentProperty(testContent, PROPERTY_SUBJECT_TAGS);
-    Assert.assertEquals("[]", returnedProperty.toString());
-  }
-
-  @Test
-  public void evaluateContentPropertyTestLinkSubjectTagsEmptyList() {
-    List<Content> emptyList = new ArrayList<>();
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, emptyList, contentRepository);
-    Object returnedProperty = csvUtils.evaluateContentProperty(testContent, PROPERTY_SUBJECT_TAGS);
-    Assert.assertEquals("[]", returnedProperty.toString());
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void evaluateContentPropertyTestLinkSubjectTagsListWithNullContent() {
-    Map<String, List<Content>> taxonomyStructure = new HashMap<>();
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "tag2");
-    Content tag3 = null;
-
-    List<Content> firstSetList = new ArrayList<>();
-    firstSetList.add(tag1);
-    firstSetList.add(tag2);
-    firstSetList.add(tag3);
-
-    taxonomyStructure.put("firstSet", firstSetList);
-
-    Content tag4 = csvTestHelper.generateContentWithFunction(Content::getName, "tag4");
-    Content tag5 = null;
-    Content tag6 = csvTestHelper.generateContentWithFunction(Content::getName, "tag6");;
-
-    List<Content> secondSetList = new ArrayList<>();
-    secondSetList.add(tag4);
-    secondSetList.add(tag5);
-    secondSetList.add(tag6);
-
-    taxonomyStructure.put("secondSet", secondSetList);
-
-    ContentBeanFactory testTaxonomyFactory = csvTestHelper.generateContentBeanFactory(taxonomyStructure);
-
-    inject(csvUtils, testTaxonomyFactory);
-
-    List<Content> testTaxonomies = new ArrayList<>();
-    testTaxonomies.add(tag3);
-    testTaxonomies.add(tag5);
-    testTaxonomies.add(tag6);
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, testTaxonomies, contentRepository);
-    csvUtils.evaluateContentProperty(testContent, PROPERTY_SUBJECT_TAGS);
-  }
-
-  @Test
-  public void evaluateContentPropertyTestLinkSubjectTagsSingleTag() {
-    Map<String, List<Content>> taxonomyStructure = new HashMap<>();
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "tag1");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "tag2");
-
-    List<Content> firstSetList = new ArrayList<>();
-    firstSetList.add(tag1);
-    firstSetList.add(tag2);
-
-    taxonomyStructure.put("firstSet", firstSetList);
-
-    ContentBeanFactory testTaxonomyFactory = csvTestHelper.generateContentBeanFactory(taxonomyStructure);
-
-    inject(csvUtils, testTaxonomyFactory);
-
-    List<Content> testTaxonomies = new ArrayList<>();
-    testTaxonomies.add(tag2);
-
-    List<String> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add("/tag1/tag2/");
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, testTaxonomies, contentRepository);
-    Object returnedProperty = csvUtils.evaluateContentProperty(testContent, PROPERTY_SUBJECT_TAGS);
-    Assert.assertEquals(expectedPropertyValue.toString(), returnedProperty.toString());
-  }
-
-  @Test
-  public void evaluateContentPropertyTestLinkSubjectTagsUnicodeCharacters() {
-    Map<String, List<Content>> taxonomyStructure = new HashMap<>();
-
-    Content tag1 = csvTestHelper.generateContentWithFunction(Content::getName, "Testing «ταБЬℓσ»: 1<2 & 4+1>3, now 20% off!");
-    Content tag2 = csvTestHelper.generateContentWithFunction(Content::getName, "٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ ٩(-̮̮̃•̃).");
-    Content tag3 = csvTestHelper.generateContentWithFunction(Content::getName, "макдональдс");
-
-    List<Content> firstSetList = new ArrayList<>();
-    firstSetList.add(tag1);
-    firstSetList.add(tag2);
-    firstSetList.add(tag3);
-
-    taxonomyStructure.put("firstSet", firstSetList);
-
-    ContentBeanFactory testTaxonomyFactory = csvTestHelper.generateContentBeanFactory(taxonomyStructure);
-
-    inject(csvUtils, testTaxonomyFactory);
-
-    List<Content> testTaxonomies = new ArrayList<>();
-    testTaxonomies.add(tag3);
-
-    List<String> expectedPropertyValue = new ArrayList<>();
-    expectedPropertyValue.add("/Testing «ταБЬℓσ»: 1<2 & 4+1>3, now 20% off!/٩(-̮̮̃-̃)۶ ٩(●̮̮̃•̃)۶ ٩(͡๏̯͡๏)۶ ٩(-̮̮̃•̃)./макдональдс/");
-
-    Content testContent = csvTestHelper.generateContentWithProperty(PROPERTY_SUBJECT_TAGS, LINK, testTaxonomies, contentRepository);
-    Object returnedProperty = csvUtils.evaluateContentProperty(testContent, PROPERTY_SUBJECT_TAGS);
     Assert.assertEquals(expectedPropertyValue.toString(), returnedProperty.toString());
   }
 
