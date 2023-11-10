@@ -55,6 +55,23 @@
 </StructProperty>
 </Struct>
 </StructProperty>
+<StructProperty Name="viewtype">
+    <Struct>
+      <StringListProperty Name="csvHeaders">
+        <String>Id</String>
+        <String>Name</String>
+        <String>Path</String>
+        <String>Type</String>
+        <String>LayoutVariant</String>
+        <String>AssociatedLayoutVariant</String>
+      </StringListProperty>
+      <StructProperty Name="csvProperties">
+        <Struct>
+          <StringProperty Name="AssociatedLayoutVariant">viewtype</StringProperty>
+        </Struct>
+      </StructProperty>
+    </Struct>
+  </StructProperty>
 </Struct>
 </StructProperty>
 </Struct></settings>
