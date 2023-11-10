@@ -3,7 +3,7 @@
     {
       "mainClass": "com.coremedia.csv.studio.CSVExportStudioPlugin",
       "name": "CSV Exporter",
-      "requiredGroup": "reporter"
+      "requiredGroup": "csv-reporter"
     }
   ]
 }

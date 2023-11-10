@@ -16,7 +16,7 @@
     <property name="restrictToAuthorizedGroups" value="true"/>
     <property name="authorizedGroups">
       <list>
-        <value>reporter</value>
+        <value>csv-reporter</value>
       </list>
     </property>
   </bean>

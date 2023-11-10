@@ -12,7 +12,7 @@
     <property name="restrictToAuthorizedGroups" value="true"/>
     <property name="authorizedGroups">
       <list>
-        <value>importer</value>
+        <value>csv-importer</value>
       </list>
     </property>
   </bean>

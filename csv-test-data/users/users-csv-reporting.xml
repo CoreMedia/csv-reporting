@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <repository xmlns="http://www.coremedia.com/2005/contentserver/userrepository">
-  <group id="reporter" name="reporter" contentgroup="true" livegroup="false" administrative="false"/>
+  <group id="csv-reporter" name="csv-reporter" contentgroup="true" livegroup="false" administrative="false"/>
 </repository>

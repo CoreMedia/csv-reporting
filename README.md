@@ -8,7 +8,7 @@ Maintained by Kevin Cherniawski, Alia Robinson, and Lihan Zhang
 This extension introduces a dependency on the third-party library “superCSV”, which is licensed under the Apache License version 2. 
 
 ### Versioning
-Versions of the CSV Reporter extension correspond to CoreMedia releases. For example, version 1904.1-1 of the CSV reporter is compatible with CoreMedia version 1904.1.
+Versions of the CSV Reporter extension correspond to CoreMedia releases. For example, version 2107.8-1 of the CSV reporter is compatible and has been tested with CoreMedia version 2107.8.
 
 # Installation
 1. Add the CSV extension to the workspace as a submodule:
@@ -45,8 +45,8 @@ If this is being deployed using docker, the URL of the preview CAE must be confi
 studio.previewRestUrlPrefix=https://preview${hostname.delimiter}${environment.fqdn}/blueprint/servlet
 ```
 
-## Reporter Group
-By default, access to this extension in Studio is restricted only to members of the “reporter” group. This is done to limit availability to a select number of people, preventing too many users in the system from sending resource-intensive requests to the preview CAE at one time. 
+## csv-reporter Group
+By default, access to this extension in Studio is restricted only to members of the “csv-reporter” group. This is done to limit availability to a select number of people, preventing too many users in the system from sending resource-intensive requests to the preview CAE at one time. 
 
 If the reporter group is not present in the system, import it via the restoreusers command-line tool. 
 ```
@@ -54,7 +54,7 @@ modules/cmd-tools/cms-tools-application/target/cms-tools/bin/cm restoreusers -u 
 -csv-reporting.xml
 ```
 
-After creating the reporter group, add the desired users as members of this group using the CoreMedia SiteManager. 
+After creating the csv-reporter group, add the desired users as members of this group using the CoreMedia SiteManager. 
 
 ## Reporting Settings
 The CSV reporter requires a global settings document to be present at Settings/Options/Settings/ReportingSettings. Use the serverimport tool to import the provided settings document.
