@@ -4,9 +4,9 @@
 
   <parent>
     <groupId>com.coremedia.blueprint</groupId>
-    <artifactId>middle.extensions</artifactId>
+    <artifactId>content-server.extensions</artifactId>
     <version>1-SNAPSHOT</version>
-    <relativePath>../../../../shared/middle/modules/extensions/pom.xml</relativePath>
+    <relativePath>../../../../apps/content-server/modules/extensions/pom.xml</relativePath>
   </parent>
 
   <artifactId>csv-cmd</artifactId>

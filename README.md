@@ -15,19 +15,22 @@ Versions of the CSV Reporter extension correspond to CoreMedia releases. For exa
     ```
     git submodule add https://github.com/CoreMedia/csv-reporting.git modules/extensions/csv
     ```
-2. Add the csv module to modules/extensions/pom.xml:
+2. Run the CoreMedia Extension Tool to add the csv extension module dependencies:
     ```
-    <modules>
-	    ...
-	    <module>csv</module>
-	    ...
-    </modules>
+    cd workspace-configuration/extensions
+    mvn extensions:sync -Denable=csv
     ```
-3. Add the “csv” extension to workspace-config/extensions/managed-extensions.txt
-4. Run the CoreMedia Extension Tool to add the csv extension module dependencies:
-    ```
-    java -jar tool/extensions.jar --task synchronize --extension-config-file  workspace-configuration/extensions/extension-config.properties --task-input-file workspace-configuration/extensions/managed-extensions.txt
-    ```
+3. Add the `csv-common`, `csv-importer` and `csv-cmd` modules to the Maven project build, e.g. as sub-modules of modules/extensions: 
+   ```
+   <modules>
+   ...
+     <module>csv/csv-common</module>
+     <module>csv/csv-importer</module>
+     <module>csv/csv-cmd</module>
+   </modules>
+   ```
+   You'll also need to make sure modules/extensions is added as a module to the root pom.xml.
+4. Rebuild the workspace
 
 ## URL Configuration
 The URL of the preview CAE must be configured in the properties file for the studio webapp. Assuming that the studio and preview CAE are deployed on the same machine, this can be done by adding the following line to the file

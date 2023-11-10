@@ -167,7 +167,7 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
      */
     @Override
     protected String getApplicationContextPath() {
-        return "classpath:/META-INF/coremedia/component-csv-uploader.xml";
+        return "classpath:/META-INF/coremedia/csv-uploader.xml";
     }
 
 

@@ -6,16 +6,9 @@
 
   <import resource="classpath:/com/coremedia/blueprint/base/links/bpbase-links-services.xml"/>
   <import resource="classpath:/framework/spring/blueprint-services.xml"/>
+  <import resource="classpath:/com/coremedia/csv/common/csv-common.xml"/>
 
-  <bean class="com.coremedia.csv.cae.utils.CSVWebSecurityConfiguration"/>
-
-  <util:constant id="csvSettingsPath" static-field="com.coremedia.csv.common.CSVConfig.DEFAULT_SETTINGS_PATH" />
-
-  <!-- CSV configuration -->
-  <bean id="csvConfig" class="com.coremedia.csv.common.CSVConfig">
-    <property name="contentRepository" ref="contentRepository"/>
-    <property name="settingsPath" ref="csvSettingsPath"/>
-  </bean>
+  <bean class="com.coremedia.csv.cae.utils.CSVCaeCsrfIgnoringRequestMatcher"/>
 
   <!-- Handlers for CSV exporting -->
   <bean id="baseCSVHandler" abstract="true" class="com.coremedia.csv.cae.handlers.BaseCSVHandler" />

@@ -18,9 +18,10 @@
   </properties>
 
   <dependencies>
+
     <dependency>
-      <groupId>com.coremedia.ui.toolkit</groupId>
-      <artifactId>ui-components</artifactId>
+      <groupId>com.coremedia.cms</groupId>
+      <artifactId>studio-client.cap-base-models</artifactId>
       <type>swc</type>
     </dependency>
 
@@ -29,7 +30,21 @@
       <artifactId>editor-components</artifactId>
       <type>swc</type>
     </dependency>
-
+    <dependency>
+      <groupId>com.coremedia.ui.toolkit</groupId>
+      <artifactId>ui-components</artifactId>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.coremedia.ui.toolkit</groupId>
+      <artifactId>client-core</artifactId>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.coremedia.ui.toolkit</groupId>
+      <artifactId>client-core-impl</artifactId>
+      <type>swc</type>
+    </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-as</artifactId>
@@ -52,6 +67,7 @@
         <version>${jangaroo.version}</version>
         <extensions>true</extensions>
         <configuration>
+          <extNamespace>com.coremedia.csv.studio.importer</extNamespace>
           <namespaces>
             <namespace>
               <uri>exml:com.coremedia.csv.studio.config</uri>

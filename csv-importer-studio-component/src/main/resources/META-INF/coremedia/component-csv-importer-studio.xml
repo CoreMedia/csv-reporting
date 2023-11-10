@@ -3,9 +3,10 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <import resource="classpath:/com/coremedia/blueprint/base/settings/impl/bpbase-settings-services.xml"/>
+  <import resource="classpath:com/coremedia/cap/common/uapi-services.xml"/>
+  <import resource="classpath:/com/coremedia/csv/common/csv-common.xml"/>
 
-  <bean id="csvImportResource" class="com.coremedia.csv.studio.CSVImportResource" scope="prototype">
+  <bean id="csvImportResource" class="com.coremedia.csv.studio.CSVImportResource">
     <property name="contentRepository" ref="contentRepository"/>
     <property name="csvConfig" ref="csvConfig"/>
     <property name="restrictToAuthorizedGroups" value="true"/>

@@ -1,13 +1,12 @@
 package com.coremedia.csv.importer;
 
-import com.coremedia.blueprint.common.contentbeans.CMLinkable;
 import com.coremedia.cap.common.*;
 import com.coremedia.cap.content.*;
 import com.coremedia.cap.struct.Struct;
 import com.coremedia.cap.struct.StructService;
 import com.coremedia.xml.Markup;
 import com.coremedia.xml.MarkupFactory;
-import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -167,7 +166,7 @@ public class CSVParserHelper {
 
                     // Some content object do not have local settings, so we must account for this as getStruct will
                     // throw an exception if this is the case and fail the import
-                    if (!content.getType().isSubtypeOf(CMLinkable.NAME)) {
+                    if (!content.getType().isSubtypeOf("CMLinkable")) {
                         hasLocalSettings = false;
                         logger.debug("Content with id {} does not have a local settings.", id);
                     }

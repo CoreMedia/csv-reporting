@@ -4,10 +4,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
                            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <import resource="classpath:/META-INF/coremedia/csv-constants.xml"/>
-    <import resource="classpath:/com/coremedia/cae/contentbean-services.xml"/>
+    <import resource="classpath:/com/coremedia/csv/common/csv-constants.xml"/>
     <import resource="classpath:/META-INF/coremedia/commandline-tools-base.xml"/>
-
 
     <bean id="csvUploader" class="com.coremedia.csv.importer.CSVUploader">
         <property name="reportHeadersToContentProperties" ref="reportHeadersToContentProperties"/>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -13,6 +14,7 @@
 
   <properties>
     <coremedia.project.extension.for>preview-cae</coremedia.project.extension.for>
+    <super-csv.version>2.4.0</super-csv.version>
   </properties>
 
   <dependencies>
@@ -47,6 +49,10 @@
       <artifactId>coremedia-xml</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.coremedia.cms</groupId>
+      <artifactId>cae-spring-security</artifactId>
+    </dependency>
+    <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
@@ -54,7 +60,7 @@
     <dependency>
       <groupId>net.sf.supercsv</groupId>
       <artifactId>super-csv</artifactId>
-      <version>2.4.0</version>
+      <version>${super-csv.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -67,15 +73,6 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-config</artifactId>
-      <scope>compile</scope>
     </dependency>
   </dependencies>
 

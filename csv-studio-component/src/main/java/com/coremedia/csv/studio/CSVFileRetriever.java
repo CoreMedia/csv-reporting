@@ -11,10 +11,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,30 +26,15 @@ public class CSVFileRetriever {
   /**
    * The URL of the preview CAE.
    */
-  private String previewUrl;
+  private final String previewUrl;
 
   /**
    * The URL to use for calls to the preview CAE from the studio REST API.
    */
-  private String previewRestUrl;
+  private final String previewRestUrl;
 
-  /**
-   * Set the URL of the preview CAE.
-   *
-   * @param previewUrl The URL of the preview CAE
-   */
-  @Value("${studio.previewUrlPrefix:}")
-  public void setPreviewUrl(String previewUrl) {
+  public CSVFileRetriever(String previewUrl, String previewRestUrl) {
     this.previewUrl = previewUrl;
-  }
-
-  /**
-   * Set the URL to use for calls to the preview CAE from the studio REST API.
-   *
-   * @param previewRestUrl The URL to use for calls to the preview CAE from the studio REST API
-   */
-  @Value("${studio.previewRestUrlPrefix:}")
-  public void setPreviewRestUrl(String previewRestUrl) {
     this.previewRestUrl = previewRestUrl;
   }
 
@@ -77,7 +62,7 @@ public class CSVFileRetriever {
 
     // Set up a POST request to the content set export endpoint
     CloseableHttpClient client = HttpClients.createDefault();
-    String requestUrl = getPreviewUrlPrefix() + "/contentsetexport/"+ URLEncoder.encode(csvTemplate, "UTF-8");
+    String requestUrl = getPreviewUrlPrefix() + "/contentsetexport/"+ URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
     HttpPost httpPost = new HttpPost(requestUrl);
     httpPost.setHeader("Content-Type", "application/json");
     HttpEntity requestEntity = new StringEntity(contentIdsList.toString());
