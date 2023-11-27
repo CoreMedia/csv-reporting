@@ -13,7 +13,7 @@
 
   <properties>
     <coremedia.project.extension.for>studio-lib</coremedia.project.extension.for>
-    <commons.csv.version>1.9.0</commons.csv.version>
+    <commons.csv.version>1.10.0</commons.csv.version>
   </properties>
 
   <dependencies>

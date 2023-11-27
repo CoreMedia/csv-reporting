@@ -1,8 +1,13 @@
 # CoreMedia CSV Reporting Extension
 
 The CoreMedia CSV Reporting Extension allows users to generate reports in CSV format describing the state of a bulk selection of content. Content may be selected in the same manner as a content search is performed in studio. This is implemented as a blueprint extension titled “CSV”, which includes modules for the studio and preview CAE components.
+
 ## About this Project
-Maintained by Kevin Cherniawski, Alia Robinson, and Lihan Zhang
+Contributors
+- Kevin Cherniawski
+- Alia Robinson
+- Lihan Zhang
+- Henning Saul
 
 ### Dependencies
 This extension introduces a dependency on the third-party library “superCSV”, which is licensed under the Apache License version 2. 
@@ -11,42 +16,43 @@ This extension introduces a dependency on the third-party library “superCSV”
 Versions of the CSV Reporter extension correspond to CoreMedia releases. For example, version 2107.8-1 of the CSV reporter is compatible and has been tested with CoreMedia version 2107.8.
 
 # Installation
-1. Add the CSV extension to the workspace as a submodule:
-    ```
-    git submodule add https://github.com/CoreMedia/csv-reporting.git modules/extensions/csv
-    ```
+1. Add the CSV extension to the workspace.
+   1. Option A: Git Submodule
+
+      Add this repo or your fork (recommended) as a Git Submodule to your existing CoreMedia Blueprint-Workspace in the extensions folder. This way, you will be able to merge new commits made in this repo back to your fork.
+      ```
+      git submodule add https://github.com/CoreMedia/csv-reporting.git modules/extensions/csv
+      ```
+      Afterwards, change to modules/extensions/csv and check out the desired branch or tag.
+   2. Option B: Copy files to your workspace
+   
+      Download the repo and copy the files into your Blueprint workspace's extension folder. 
+      This way you won't be able to merge new commits made in this repo back to yours. But if you do not like Git Submodules, you don't have to deal with them.
 2. Run the CoreMedia Extension Tool to add the csv extension module dependencies:
     ```
     cd workspace-configuration/extensions
     mvn extensions:sync -Denable=csv
     ```
-3. Add the `csv-common`, `csv-importer` and `csv-cmd` modules to the Maven project build, e.g. as sub-modules of modules/extensions: 
-   ```
-   <modules>
-   ...
-     <module>csv/csv-common</module>
-     <module>csv/csv-importer</module>
-     <module>csv/csv-cmd</module>
-   </modules>
-   ```
-   You'll also need to make sure modules/extensions is added as a module to the root pom.xml.
-4. Rebuild the workspace
+3. Rebuild the workspace and studio-client
 
 ## URL Configuration
-The URL of the preview CAE must be configured in the properties file for the studio webapp. Assuming that the studio and preview CAE are deployed on the same machine, this can be done by adding the following line to the file
-`modules\studio\studio-webapp\src\main\webapp\WEB-INF\application.properties` in the blueprint workspace:
+The studio-server needs to be configured with a URL where to reach the Preview CAE:
 ```
-studio.previewRestUrlPrefix=http://localhost:40980/blueprint/servlet
+csv.previewRestUrlPrefix=http://[cae-preview-host]:[cae-preview-port]/blueprint/servlet
 ```
 
-## URL Configuration (Docker)
-If this is being deployed using docker, the URL of the preview CAE must be configured in the properties file of the studio rest service. Add the following line to the file `studio-rest-service\src\docker\config\application.properties` in the docker deployment workspace:
+The default is as follows, which works for a standard Docker deployment:
 ```
-studio.previewRestUrlPrefix=https://preview${hostname.delimiter}${environment.fqdn}/blueprint/servlet
+http://cae-preview:8080/blueprint/servlet
+```
+
+For local development with a local studio-server and cae-preview, you will want to configure it as follows:
+```
+csv.previewRestUrlPrefix=http://localhost:40980/blueprint/servlet
 ```
 
 ## csv-reporter Group
-By default, access to this extension in Studio is restricted only to members of the “csv-reporter” group. This is done to limit availability to a select number of people, preventing too many users in the system from sending resource-intensive requests to the preview CAE at one time. 
+By default, access to this extension in Studio is restricted only to members of the “csv-reporter” group. This is done to limit availability to a select number of people, preventing too many users in the system from sending resource-intensive requests to the Preview CAE at one time. 
 
 If the reporter group is not present in the system, import it via the restoreusers command-line tool. 
 ```

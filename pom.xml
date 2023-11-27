@@ -18,9 +18,7 @@
     <module>csv-importer</module>
     <module>csv-importer-studio-component</module>
     <module>csv-preview-cae</module>
-    <module>csv-studio</module>
     <module>csv-studio-component</module>
-    <module>csv-studio-importer</module>
     <module>csv-test-data</module>
   </modules>
 </project>

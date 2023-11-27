@@ -24,18 +24,12 @@ import java.util.List;
 public class CSVFileRetriever {
 
   /**
-   * The URL of the preview CAE.
-   */
-  private final String previewUrl;
-
-  /**
    * The URL to use for calls to the preview CAE from the studio REST API.
    */
-  private final String previewRestUrl;
+  private final String previewRestUrlPrefix;
 
-  public CSVFileRetriever(String previewUrl, String previewRestUrl) {
-    this.previewUrl = previewUrl;
-    this.previewRestUrl = previewRestUrl;
+  public CSVFileRetriever(String previewRestUrlPrefix) {
+    this.previewRestUrlPrefix = previewRestUrlPrefix;
   }
 
   /**
@@ -62,7 +56,7 @@ public class CSVFileRetriever {
 
     // Set up a POST request to the content set export endpoint
     CloseableHttpClient client = HttpClients.createDefault();
-    String requestUrl = getPreviewUrlPrefix() + "/contentsetexport/"+ URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
+    String requestUrl = previewRestUrlPrefix + "/contentsetexport/"+ URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
     HttpPost httpPost = new HttpPost(requestUrl);
     httpPost.setHeader("Content-Type", "application/json");
     HttpEntity requestEntity = new StringEntity(contentIdsList.toString());
@@ -85,17 +79,4 @@ public class CSVFileRetriever {
     }
   }
 
-  /**
-   * Gets the URL prefix for an HTTP request to the preview CAE.
-   *
-   * @return The URL prefix for an HTTP request to the preview CAE
-   */
-  private String getPreviewUrlPrefix() {
-    if(previewRestUrl != null
-            && !previewRestUrl.isEmpty()
-            && !"${studio.previewRestUrlPrefix}".equals(previewRestUrl)) {
-      return previewRestUrl;
-    }
-    return previewUrl;
-  }
 }

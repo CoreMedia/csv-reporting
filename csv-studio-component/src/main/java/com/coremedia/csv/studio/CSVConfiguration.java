@@ -6,7 +6,7 @@ import com.coremedia.rest.cap.CapRestServiceSearchConfiguration;
 import com.coremedia.rest.cap.content.search.CapObjectFormat;
 import com.coremedia.rest.cap.content.search.SearchService;
 import com.coremedia.rest.linking.LinkResolver;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -19,7 +19,9 @@ import java.util.List;
         CapRestServiceBaseConfiguration.class,
         CapRestServiceSearchConfiguration.class
 })
-@PropertySource("classpath:/com/coremedia/csv/studio/csv-defaults.properties")
+@EnableConfigurationProperties({
+        CSVConfigurationProperties.class
+})
 class CSVConfiguration {
 
   @Bean
@@ -29,7 +31,7 @@ class CSVConfiguration {
   }
 
   @Bean
-  public CSVFileRetriever csvFileRetriever(@Value("${studio.previewUrlPrefix}") String previewUrlPrefix, @Value("${studio.previewRestUrlPrefix}") String previewRestUrlPrefix) {
-    return new CSVFileRetriever(previewUrlPrefix, previewRestUrlPrefix);
+  public CSVFileRetriever csvFileRetriever(CSVConfigurationProperties csvConfigurationProperties) {
+    return new CSVFileRetriever(csvConfigurationProperties.getPreviewRestUrlPrefix());
   }
 }

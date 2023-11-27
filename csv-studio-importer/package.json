@@ -1,8 +1,0 @@
-{
-  "studioPlugins": [
-    {
-      "mainClass": "com.coremedia.csv.studio.importer.CSVImportStudioPlugin",
-      "name": "CSV Importer"
-    }
-  ]
-}

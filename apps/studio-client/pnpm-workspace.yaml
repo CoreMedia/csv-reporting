@@ -1,0 +1,3 @@
+packages:
+  - "apps/main/csv-studio"
+  - "apps/main/csv-studio-importer"
