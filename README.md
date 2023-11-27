@@ -60,7 +60,9 @@ modules/cmd-tools/cms-tools-application/target/cms-tools/bin/cm restoreusers -u 
 -csv-reporting.xml
 ```
 
-After creating the csv-reporter group, add the desired users as members of this group using the CoreMedia SiteManager. 
+After creating the csv-reporter group, add the desired users as members of this group using the CoreMedia User Manager. 
+
+For CMCC-Service customers, the above applies to the Sandbox only and group creation and user assignment can be performed using the Cloud Manager.  
 
 ## Reporting Settings
 The CSV reporter requires a global settings document to be present at Settings/Options/Settings/ReportingSettings. Use the serverimport tool to import the provided settings document.

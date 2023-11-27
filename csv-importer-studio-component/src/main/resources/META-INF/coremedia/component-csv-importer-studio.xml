@@ -13,6 +13,7 @@
     <property name="authorizedGroups">
       <list>
         <value>csv-importer</value>
+        <value>csv-importer@cognito</value>
       </list>
     </property>
   </bean>

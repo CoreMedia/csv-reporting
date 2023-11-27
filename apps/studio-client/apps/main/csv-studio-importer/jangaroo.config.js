@@ -30,7 +30,7 @@ module.exports = jangarooConfig({
           name: "CSV Import",
           url: "",
           cmAdministrative: false,
-          cmGroups: ["csv-importer"],
+          cmGroups: ["csv-importer", "csv-importer@cognito"],
           cmService: {
             name: "launchSubAppService",
             method: "launchSubApp",

@@ -26,7 +26,7 @@ class CSVConfiguration {
 
   @Bean
   public CSVExportResource csvExportResource(CSVFileRetriever csvFileRetriever, ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, LinkResolver linkResolver) {
-    List<String> authorizedGroups = List.of("csv-reporter");
+    List<String> authorizedGroups = List.of("csv-reporter", "csv-reporter@cognito");
     return new CSVExportResource(csvFileRetriever, contentRepository, searchService, capObjectFormat, true, authorizedGroups, linkResolver);
   }
 
