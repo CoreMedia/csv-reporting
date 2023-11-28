@@ -9,9 +9,6 @@ Contributors
 - Lihan Zhang
 - Henning Saul
 
-### Dependencies
-This extension introduces a dependency on the third-party library “superCSV”, which is licensed under the Apache License version 2. 
-
 ### Versioning
 Versions of the CSV Reporter extension correspond to CoreMedia releases. For example, version 2107.8-1 of the CSV reporter is compatible and has been tested with CoreMedia version 2107.8.
 

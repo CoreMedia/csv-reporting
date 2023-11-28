@@ -14,7 +14,7 @@
 
   <properties>
     <coremedia.project.extension.for>preview-cae</coremedia.project.extension.for>
-    <super-csv.version>2.4.0</super-csv.version>
+    <commons.csv.version>1.10.0</commons.csv.version>
   </properties>
 
   <dependencies>
@@ -58,9 +58,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>net.sf.supercsv</groupId>
-      <artifactId>super-csv</artifactId>
-      <version>${super-csv.version}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>${commons.csv.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

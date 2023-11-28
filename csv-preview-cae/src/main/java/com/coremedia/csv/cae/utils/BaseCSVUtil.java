@@ -19,9 +19,6 @@ import com.coremedia.xml.Markup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.supercsv.io.CsvMapWriter;
-import org.supercsv.io.ICsvMapWriter;
-import org.supercsv.prefs.CsvPreference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -127,7 +124,7 @@ public abstract class BaseCSVUtil {
    * @throws IOException if an error occurs generating the CSV file
    */
   public void generateCSV(int[] contentIds, String template, HttpServletRequest request, HttpServletResponse response) throws IOException {
-    ICsvMapWriter csvWriter = null;
+    CSVWriter csvWriter = null;
     try {
       List<Content> contentList = new ArrayList<>();
       String[] header = CSVConfig.getCSVHeaders(template);
@@ -143,7 +140,7 @@ public abstract class BaseCSVUtil {
           }
         }
       }
-      if (contentList.size() > 0) { // finish writing last batch
+      if (!contentList.isEmpty()) { // finish writing last batch
         writeCSV(csvWriter, contentList, header, propertiesMap, request, response);
       }
 
@@ -166,14 +163,14 @@ public abstract class BaseCSVUtil {
    * @return the CSVWriter of the response from the server
    * @throws IOException if an exception occurs initializing the CSV writer
    */
-  protected ICsvMapWriter initializeCSVWriter(String csvFileName, String[] header, HttpServletResponse response) throws IOException {
+  protected CSVWriter initializeCSVWriter(String csvFileName, String[] header, HttpServletResponse response) throws IOException {
     String headerKey = HTTP_HEADER_CONTENT_DISPOSITION;
     String headerValue = String.format("attachment; filename=\"%s\"",
             csvFileName);
     response.setHeader(headerKey, headerValue);
     response.setCharacterEncoding("UTF-8"); // set the character encoding for internationalized characters
 
-    ICsvMapWriter csvWriter = new CsvMapWriter(response.getWriter(), CsvPreference.STANDARD_PREFERENCE);
+    CSVWriter csvWriter = new CSVWriter(response.getWriter());
     csvWriter.writeHeader(header);
     csvWriter.flush();
     return csvWriter;
@@ -185,7 +182,7 @@ public abstract class BaseCSVUtil {
    * @param csvWriter the writer to close
    * @throws IOException if an exception occurs while closing the CSV writer
    */
-  protected void closeCSVWriter(ICsvMapWriter csvWriter) throws IOException {
+  protected void closeCSVWriter(CSVWriter csvWriter) throws IOException {
     if (csvWriter != null) {
       csvWriter.flush();
       csvWriter.close();
@@ -202,7 +199,7 @@ public abstract class BaseCSVUtil {
    * @param response    the HTTP servlet response sent back to the client
    * @throws IOException if an error occurs writing out the CSV data members
    */
-  protected void writeCSV(ICsvMapWriter csvWriter, List<Content> contentList, String[] header,
+  protected void writeCSV(CSVWriter csvWriter, List<Content> contentList, String[] header,
                           Map<String, String> propertiesMap, HttpServletRequest request,
                           HttpServletResponse response) throws IOException {
 
@@ -231,7 +228,7 @@ public abstract class BaseCSVUtil {
    * @param response  the HTTP response sent back from the handler - used for generating links from the content
    * @throws IOException if an exception occurs while writing the CSV record
    */
-  protected void writeCSVRecord(ICsvMapWriter csvWriter, Content content, String[] header,
+  protected void writeCSVRecord(CSVWriter csvWriter, Content content, String[] header,
                                 Map<String, String> propertiesMap, HttpServletRequest request,
                                 HttpServletResponse response) throws IOException {
     // Generate the record
