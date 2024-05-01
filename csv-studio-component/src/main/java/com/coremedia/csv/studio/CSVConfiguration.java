@@ -34,4 +34,9 @@ class CSVConfiguration {
   public CSVFileRetriever csvFileRetriever(CSVConfigurationProperties csvConfigurationProperties) {
     return new CSVFileRetriever(csvConfigurationProperties.getPreviewRestUrlPrefix());
   }
+
+  @Bean
+  public CSVExportJobFactory csvExportJobFactory() {
+    return new CSVExportJobFactory();
+  }
 }
