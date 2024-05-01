@@ -10,6 +10,9 @@
 
   <properties>
     <workspace.configuration.dir>../../../../workspace-configuration</workspace.configuration.dir>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <docs.directory>${project.basedir}/documentation</docs.directory>
   </properties>
 
   <modules>
@@ -21,4 +24,54 @@
     <module>csv-studio-component</module>
     <module>csv-test-data</module>
   </modules>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>2.4.0</version>
+          <configuration>
+            <cleanLicensesOutputDirectory>true</cleanLicensesOutputDirectory>
+            <errorRemedy>ignore</errorRemedy>
+            <excludedGroups>^com\.coremedia\.</excludedGroups>
+            <excludeTransitiveDependencies>true</excludeTransitiveDependencies>
+            <includeTransitiveDependencies>false</includeTransitiveDependencies>
+            <licensesOutputFile>${docs.directory}/third-party-licenses/licenses.xml</licensesOutputFile>
+            <licensesOutputDirectory>${docs.directory}/third-party-licenses</licensesOutputDirectory>
+            <outputDirectory>${docs.directory}</outputDirectory>
+            <sortByGroupIdAndArtifactId>true</sortByGroupIdAndArtifactId>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>docs-third-party</id>
+      <!--
+        Will create generated resources for docs/ folder.
+      -->
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-docs-licenses</id>
+                <goals>
+                  <goal>aggregate-add-third-party</goal>
+                  <goal>aggregate-download-licenses</goal>
+                </goals>
+                <phase>generate-resources</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
