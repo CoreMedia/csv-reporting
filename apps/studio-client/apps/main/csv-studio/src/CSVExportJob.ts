@@ -43,7 +43,8 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   }
 
   getIconClsExpression(): ValueExpression {
-    return null;
+    // use a common icon for now...
+    return ValueExpressionFactory.createFromValue("longRunningProcess");
   }
 
   getErrorHandler(): AnyFunction {
