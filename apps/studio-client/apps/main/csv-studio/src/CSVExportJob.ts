@@ -36,11 +36,14 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   }
 
   getNameExpression():ValueExpression {
-    return ValueExpressionFactory.createFromValue("A CSVExportJob");
+    let baseName: string = "CSV Export";
+    let time: string = new Date().toLocaleString();
+    let name: string = `${baseName} ${time}`;
+    return ValueExpressionFactory.createFromValue(name);
   }
 
   getIconClsExpression(): ValueExpression {
-    return ValueExpressionFactory.createFromValue("xliff");
+    return null;
   }
 
   getErrorHandler(): AnyFunction {
