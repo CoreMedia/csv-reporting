@@ -13,6 +13,10 @@ import ObjectUtil from "@jangaroo/ext-ts/Object";
 import { bind, cast } from "@jangaroo/runtime";
 import Config from "@jangaroo/runtime/Config";
 import CSVExportDialog from "./CSVExportDialog";
+import Job from "@coremedia/studio-client.cap-rest-client/common/Job";
+import jobService from "@coremedia/studio-client.cap-rest-client/common/jobService";
+import { AnyFunction } from "@jangaroo/runtime/types";
+import CSVExportJob from "./CSVExportJob";
 
 interface CSVExportDialogBaseConfig extends Config<StudioDialog>, Partial<Pick<CSVExportDialogBase,
   "confirmationMessage"
@@ -97,7 +101,22 @@ class CSVExportDialogBase extends StudioDialog {
   }
 
   protected handleExport(): void {
-    window.open(this.getRequestURI(CSVExportDialogBase.getSearchParams()));
+    // old implementation for synchronous request
+    //window.open(this.getRequestURI(CSVExportDialogBase.getSearchParams()));
+    const searchParams: SearchParameters = CSVExportDialogBase.getSearchParams();
+    const params = ObjectUtils.removeUndefinedOrNullProperties(searchParams);
+    params["template"] = this.getSelectedTemplateValueExpression().getValue();
+    delete params["xclass"];
+
+    const successCallback: AnyFunction = (): void => {};
+    const job: Job = new CSVExportJob(params);
+    jobService._.executeJob(
+            job,
+            //on success
+            successCallback,
+            //on error
+            (result: any): void => {},
+    );
     this.close();
   }
 
