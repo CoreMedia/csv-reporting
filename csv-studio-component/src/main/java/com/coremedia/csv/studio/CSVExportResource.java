@@ -3,9 +3,6 @@ package com.coremedia.csv.studio;
 import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.content.ContentType;
-import com.coremedia.cap.user.Group;
-import com.coremedia.cap.user.User;
-import com.coremedia.cap.user.UserRepository;
 import com.coremedia.csv.common.CSVConstants;
 import com.coremedia.rest.cap.content.SearchParameterNames;
 import com.coremedia.rest.cap.content.search.CapObjectFormat;
@@ -36,6 +33,11 @@ public class CSVExportResource {
   public static final String TEMPLATE_PARAMETER = "template";
 
   /**
+   * Determines whether export is allowed for current user.
+   */
+  private final CSVExportAuthorization csvExportAuthorization;
+
+  /**
    * Sends a request for a CSV file to the preview CAE.
    */
   private final CSVFileRetriever csvFileRetriever;
@@ -56,28 +58,17 @@ public class CSVExportResource {
   private final CapObjectFormat capObjectFormat;
 
   /**
-   * Flag indicating whether access to this endpoint should be restricted to authorized groups only
-   */
-  private final boolean restrictToAuthorizedGroups;
-
-  /**
-   * The groups that are authorized to access this endpoint.
-   */
-  private final List<String> authorizedGroups;
-
-  /**
    * Resolves URI's to Domain Objects.
    */
   private final LinkResolver linkResolver;
 
 
-  public CSVExportResource(CSVFileRetriever csvFileRetriever, ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, boolean restrictToAuthorizedGroups, List<String> authorizedGroups, LinkResolver linkResolver) {
+  public CSVExportResource(CSVExportAuthorization csvExportAuthorization, CSVFileRetriever csvFileRetriever, ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, LinkResolver linkResolver) {
+    this.csvExportAuthorization = csvExportAuthorization;
     this.csvFileRetriever = csvFileRetriever;
     this.contentRepository = contentRepository;
     this.searchService = searchService;
     this.capObjectFormat = capObjectFormat;
-    this.restrictToAuthorizedGroups = restrictToAuthorizedGroups;
-    this.authorizedGroups = authorizedGroups;
     this.linkResolver = linkResolver;
   }
 
@@ -106,7 +97,7 @@ public class CSVExportResource {
     }
 
     // Check that the user is a member of the requisite group
-    if(restrictToAuthorizedGroups && !isAuthorized()) {
+    if(!csvExportAuthorization.isAuthorized()) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
@@ -145,27 +136,6 @@ public class CSVExportResource {
             .contentType(MediaType.valueOf(CSVConstants.CSV_MEDIA_TYPE))
             .body(csvFileResponse.getData());
   }
-
-  /**
-   * Checks whether the current user is authorized to initiate a CSV export.
-   *
-   * @return whether the current user is authorized to initiate a CSV export
-   */
-  private boolean isAuthorized() {
-    if(this.authorizedGroups == null || this.authorizedGroups.isEmpty())
-      return false;
-
-    User user = contentRepository.getConnection().getSession().getUser();
-    UserRepository userRepository = contentRepository.getConnection().getUserRepository();
-    for(String authorizedGroupName : authorizedGroups) {
-      Group group = userRepository.getGroupByName(authorizedGroupName);
-      if(group != null && user.isMemberOf(group)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
 
   // ---------- COPIED FROM ContentRepositoryResource.java ----------
 

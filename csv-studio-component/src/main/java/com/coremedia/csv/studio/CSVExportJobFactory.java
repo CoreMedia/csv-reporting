@@ -5,8 +5,10 @@ import com.coremedia.rest.cap.jobs.Job;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 public class CSVExportJobFactory implements JobFactory {
+  private final CSVExportAuthorization csvExportAuthorization;
 
-  public CSVExportJobFactory() {
+  public CSVExportJobFactory(CSVExportAuthorization csvExportAuthorization) {
+    this.csvExportAuthorization = csvExportAuthorization;
   }
 
   @Override
@@ -17,6 +19,6 @@ public class CSVExportJobFactory implements JobFactory {
   @NonNull
   @Override
   public Job createJob() {
-    return new CSVExportJob();
+    return new CSVExportJob(csvExportAuthorization);
   }
 }
