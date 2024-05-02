@@ -1,5 +1,7 @@
 package com.coremedia.csv.studio;
 
+import com.coremedia.cap.content.ContentRepository;
+import com.coremedia.cap.user.User;
 import com.coremedia.rest.cap.jobs.Job;
 import com.coremedia.rest.cap.jobs.JobContext;
 import com.coremedia.rest.cap.jobs.JobExecutionException;
@@ -20,6 +22,8 @@ public class CSVExportJob implements Job {
 
   private final CSVExportAuthorization csvExportAuthorization;
 
+  private final CSVExportSearchService csvExportSearchService;
+
   private String query;
   private int limit;
   private List<String> sortCriteria;
@@ -33,8 +37,10 @@ public class CSVExportJob implements Job {
   private String searchHandler;
   private String template;
 
-  public CSVExportJob(CSVExportAuthorization csvExportAuthorization) {
+  public CSVExportJob(CSVExportAuthorization csvExportAuthorization,
+                      CSVExportSearchService csvExportSearchService) {
     this.csvExportAuthorization = csvExportAuthorization;
+    this.csvExportSearchService = csvExportSearchService;
   }
 
   @Nullable
@@ -48,6 +54,8 @@ public class CSVExportJob implements Job {
     if (template == null || template.isEmpty())
       throw new JobExecutionException(CSVExportJobErrorCode.PARAM_TEMPLATE_MISSING);
 
+    User user = csvExportAuthorization.getCurrentUser();
+    LOG.info("User {} started {}", user.getNameAtDomain(), this);
 
     float progress = 0.0f;
     while (progress < 1.0f) {
@@ -137,4 +145,21 @@ public class CSVExportJob implements Job {
     this.template = template;
   }
 
+  @Override
+  public String toString() {
+    return "CSVExportJob{" +
+            "query='" + query + '\'' +
+            ", limit=" + limit +
+            ", sortCriteria=" + sortCriteria +
+            ", folderUri='" + folderUri + '\'' +
+            ", includeSubFolders=" + includeSubFolders +
+            ", contentTypeNames=" + contentTypeNames +
+            ", includeSubTypes=" + includeSubTypes +
+            ", filterQueries=" + filterQueries +
+            ", facetFieldCriteria=" + facetFieldCriteria +
+            ", facetQueries=" + facetQueries +
+            ", searchHandler='" + searchHandler + '\'' +
+            ", template='" + template + '\'' +
+            '}';
+  }
 }

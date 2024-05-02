@@ -37,7 +37,7 @@ public class CSVExportAuthorization {
     if(this.authorizedGroups == null || this.authorizedGroups.isEmpty())
       return false;
 
-    User user = contentRepository.getConnection().getSession().getUser();
+    User user = getCurrentUser();
     UserRepository userRepository = contentRepository.getConnection().getUserRepository();
     for(String authorizedGroupName : authorizedGroups) {
       Group group = userRepository.getGroupByName(authorizedGroupName);
@@ -46,5 +46,9 @@ public class CSVExportAuthorization {
       }
     }
     return false;
+  }
+
+  public User getCurrentUser() {
+    return contentRepository.getConnection().getSession().getUser();
   }
 }

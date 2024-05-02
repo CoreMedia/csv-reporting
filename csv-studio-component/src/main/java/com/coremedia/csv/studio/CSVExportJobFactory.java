@@ -6,9 +6,12 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 public class CSVExportJobFactory implements JobFactory {
   private final CSVExportAuthorization csvExportAuthorization;
+  private final CSVExportSearchService csvExportSearchService;
 
-  public CSVExportJobFactory(CSVExportAuthorization csvExportAuthorization) {
+  public CSVExportJobFactory(CSVExportAuthorization csvExportAuthorization,
+                             CSVExportSearchService csvExportSearchService) {
     this.csvExportAuthorization = csvExportAuthorization;
+    this.csvExportSearchService = csvExportSearchService;
   }
 
   @Override
@@ -19,6 +22,6 @@ public class CSVExportJobFactory implements JobFactory {
   @NonNull
   @Override
   public Job createJob() {
-    return new CSVExportJob(csvExportAuthorization);
+    return new CSVExportJob(csvExportAuthorization, csvExportSearchService);
   }
 }

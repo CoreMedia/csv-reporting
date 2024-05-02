@@ -30,12 +30,17 @@ class CSVConfiguration {
   }
 
   @Bean
-  CSVExportSearchService csvExportSearchService(ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, LinkResolver linkResolver) {
-      return new CSVExportSearchService(contentRepository, searchService, capObjectFormat, linkResolver);
+  CSVExportSearchService csvExportSearchService(ContentRepository contentRepository,
+                                                SearchService searchService,
+                                                CapObjectFormat capObjectFormat,
+                                                LinkResolver linkResolver) {
+    return new CSVExportSearchService(contentRepository, searchService, capObjectFormat, linkResolver);
   }
 
   @Bean
-  public CSVExportResource csvExportResource(CSVExportAuthorization csvExportAuthorization, CSVExportSearchService csvExportSearchService, CSVFileRetriever csvFileRetriever) {
+  public CSVExportResource csvExportResource(CSVExportAuthorization csvExportAuthorization,
+                                             CSVExportSearchService csvExportSearchService,
+                                             CSVFileRetriever csvFileRetriever) {
     return new CSVExportResource(csvExportAuthorization, csvExportSearchService, csvFileRetriever);
   }
 
@@ -45,7 +50,8 @@ class CSVConfiguration {
   }
 
   @Bean
-  public CSVExportJobFactory csvExportJobFactory(CSVExportAuthorization csvExportAuthorization) {
-    return new CSVExportJobFactory(csvExportAuthorization);
+  public CSVExportJobFactory csvExportJobFactory(CSVExportAuthorization csvExportAuthorization,
+                                                 CSVExportSearchService csvExportSearchService) {
+    return new CSVExportJobFactory(csvExportAuthorization, csvExportSearchService);
   }
 }

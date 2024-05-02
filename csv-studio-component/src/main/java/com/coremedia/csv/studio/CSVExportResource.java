@@ -1,17 +1,9 @@
 package com.coremedia.csv.studio;
 
-import com.coremedia.cap.content.Content;
-import com.coremedia.cap.content.ContentRepository;
-import com.coremedia.cap.content.ContentType;
 import com.coremedia.csv.common.CSVConstants;
 import com.coremedia.rest.cap.content.SearchParameterNames;
-import com.coremedia.rest.cap.content.search.CapObjectFormat;
-import com.coremedia.rest.cap.content.search.QueryUriResolver;
-import com.coremedia.rest.cap.content.search.SearchService;
 import com.coremedia.rest.cap.content.search.SearchServiceResult;
 import com.coremedia.rest.exception.BadRequestException;
-import com.coremedia.rest.linking.LinkResolver;
-import com.coremedia.rest.linking.LinkResolverUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
