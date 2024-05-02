@@ -38,38 +38,19 @@ public class CSVExportResource {
   private final CSVExportAuthorization csvExportAuthorization;
 
   /**
+   * Wrapper for SearchService with some extra handling for input parameters.
+   */
+  private final CSVExportSearchService csvExportSearchService;
+
+  /**
    * Sends a request for a CSV file to the preview CAE.
    */
   private final CSVFileRetriever csvFileRetriever;
 
-  /**
-   * The content repository from which to retrieve content.
-   */
-  private final ContentRepository contentRepository;
-
-  /**
-   * The search service with which to search for content.
-   */
-  private final SearchService searchService;
-
-  /**
-   * The formatter for resolving URIs.
-   */
-  private final CapObjectFormat capObjectFormat;
-
-  /**
-   * Resolves URI's to Domain Objects.
-   */
-  private final LinkResolver linkResolver;
-
-
-  public CSVExportResource(CSVExportAuthorization csvExportAuthorization, CSVFileRetriever csvFileRetriever, ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, LinkResolver linkResolver) {
+  public CSVExportResource(CSVExportAuthorization csvExportAuthorization, CSVExportSearchService csvExportSearchService, CSVFileRetriever csvFileRetriever) {
     this.csvExportAuthorization = csvExportAuthorization;
+    this.csvExportSearchService = csvExportSearchService;
     this.csvFileRetriever = csvFileRetriever;
-    this.contentRepository = contentRepository;
-    this.searchService = searchService;
-    this.capObjectFormat = capObjectFormat;
-    this.linkResolver = linkResolver;
   }
 
   /**
@@ -101,21 +82,9 @@ public class CSVExportResource {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    // Resolve parameters from request
-    // COPIED FROM ContentRepositoryResource.java
-    final Collection<ContentType> contentTypes = getContentTypes(contentTypeNames);
-    final Content folderFilter = getFolder(folderUri);
-    final QueryUriResolver uriResolver = new QueryUriResolver(linkResolver, capObjectFormat);
-    final List<String> resolvedFilterQueries = uriResolver.resolveUris(filterQueries);
-    final List<String> resolvedFacetQueries = uriResolver.resolveUris(facetQueries);
-    final List<String> resolvedSortCriteria = uriResolver.resolveUris(sortCriteria);
-
-    boolean includeSubFoldersValue = includeSubFolders == null ? true : includeSubFolders;
-    boolean includeSubTypesValue = includeSubTypes == null ? true : includeSubTypes;
-
-    // Query solr with the provided parameters
-    SearchServiceResult result = searchService.search(query, limit, resolvedSortCriteria, folderFilter, includeSubFoldersValue,
-            contentTypes, includeSubTypesValue, resolvedFilterQueries, facetFieldCriteria, resolvedFacetQueries, searchHandler);
+    // Query SearchService with the provided parameters
+    SearchServiceResult result = csvExportSearchService.search(query, limit, sortCriteria, folderUri, includeSubFolders,
+            contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
 
     // Use the CSVFileRetriever to request the file data from the CAE
     CSVFileResponse csvFileResponse = csvFileRetriever.retrieveCSV(csvTemplate, result.getHits());
@@ -136,43 +105,5 @@ public class CSVExportResource {
             .contentType(MediaType.valueOf(CSVConstants.CSV_MEDIA_TYPE))
             .body(csvFileResponse.getData());
   }
-
-  // ---------- COPIED FROM ContentRepositoryResource.java ----------
-
-  /**
-   * Returns {@link ContentType}s for the given content type names.
-   *
-   * @param contentTypeNames content type names
-   * @return content types
-   * @throws BadRequestException if at least one of the given content type names is invalid, i.e. no such content type exists
-   */
-  private Collection<ContentType> getContentTypes(final Set<String> contentTypeNames) {
-    if (contentTypeNames == null) {
-      return Collections.emptyList();
-    }
-    final Collection<ContentType> contentTypeFilter = new ArrayList<>();
-    for (final String contentTypeName : contentTypeNames) {
-      final ContentType contentType = contentRepository.getContentType(contentTypeName);
-      if (contentType == null) {
-        throw new BadRequestException("invalid content type: " + contentTypeName);
-      }
-      contentTypeFilter.add(contentType);
-    }
-    return contentTypeFilter;
-  }
-
-  // ---------- COPIED FROM ContentRepositoryResource.java ----------
-
-  private Content getFolder(final String folderUri) {
-    if (folderUri == null) {
-      return null;
-    }
-    final Content folderFilter = (Content) LinkResolverUtil.resolveLink(folderUri, linkResolver);
-    if (!folderFilter.isFolder()) {
-      throw new BadRequestException("invalid folderUri uri: " + folderUri);
-    }
-    return folderFilter;
-  }
-
 
 }

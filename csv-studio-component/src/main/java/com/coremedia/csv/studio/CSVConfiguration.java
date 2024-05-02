@@ -24,14 +24,19 @@ import java.util.List;
 class CSVConfiguration {
 
   @Bean
-  public CSVExportAuthorization getCSVExportAuthorization(ContentRepository contentRepository) {
+  public CSVExportAuthorization csvExportAuthorization(ContentRepository contentRepository) {
     List<String> authorizedGroups = List.of("csv-reporter", "csv-reporter@cognito");
     return new CSVExportAuthorization(contentRepository, true, authorizedGroups);
   }
 
   @Bean
-  public CSVExportResource csvExportResource(CSVExportAuthorization csvExportAuthorization, CSVFileRetriever csvFileRetriever, ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, LinkResolver linkResolver) {
-    return new CSVExportResource(csvExportAuthorization, csvFileRetriever, contentRepository, searchService, capObjectFormat, linkResolver);
+  CSVExportSearchService csvExportSearchService(ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, LinkResolver linkResolver) {
+      return new CSVExportSearchService(contentRepository, searchService, capObjectFormat, linkResolver);
+  }
+
+  @Bean
+  public CSVExportResource csvExportResource(CSVExportAuthorization csvExportAuthorization, CSVExportSearchService csvExportSearchService, CSVFileRetriever csvFileRetriever) {
+    return new CSVExportResource(csvExportAuthorization, csvExportSearchService, csvFileRetriever);
   }
 
   @Bean
