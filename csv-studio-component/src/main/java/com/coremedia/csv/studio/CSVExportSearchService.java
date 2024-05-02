@@ -34,11 +34,18 @@ public class CSVExportSearchService {
    */
   private final LinkResolver linkResolver;
 
-  public CSVExportSearchService(ContentRepository contentRepository, SearchService searchService, CapObjectFormat capObjectFormat, LinkResolver linkResolver) {
+  private final int defaultItemLimit;
+
+  public CSVExportSearchService(ContentRepository contentRepository,
+                                SearchService searchService,
+                                CapObjectFormat capObjectFormat,
+                                LinkResolver linkResolver,
+                                int defaultItemLimit) {
     this.contentRepository = contentRepository;
     this.searchService = searchService;
     this.capObjectFormat = capObjectFormat;
     this.linkResolver = linkResolver;
+    this.defaultItemLimit = defaultItemLimit;
   }
 
   public SearchServiceResult search(String query, int limit, List<String> sortCriteria, String folderUri, Boolean includeSubFolders, Set<String> contentTypeNames, Boolean includeSubTypes, List<String> filterQueries, List<String> facetFieldCriteria, List<String> facetQueries, String searchHandler) {
@@ -47,14 +54,18 @@ public class CSVExportSearchService {
     final Content folderFilter = getFolder(folderUri);
     final QueryUriResolver uriResolver = new QueryUriResolver(linkResolver, capObjectFormat);
     final List<String> resolvedFilterQueries = uriResolver.resolveUris(filterQueries);
-    final List<String> resolvedFacetQueries = uriResolver.resolveUris(facetQueries);
+    // final List<String> resolvedFacetQueries = uriResolver.resolveUris(facetQueries);
     final List<String> resolvedSortCriteria = uriResolver.resolveUris(sortCriteria);
 
     boolean includeSubFoldersValue = includeSubFolders == null ? true : includeSubFolders;
     boolean includeSubTypesValue = includeSubTypes == null ? true : includeSubTypes;
 
+    if (limit == -1 && defaultItemLimit != -1)
+      limit = defaultItemLimit;
+
+    // perform search, no need to pass in facetFieldCriteria/resolvedFacetQueries
     return searchService.search(query, limit, resolvedSortCriteria, folderFilter, includeSubFoldersValue,
-            contentTypes, includeSubTypesValue, resolvedFilterQueries, facetFieldCriteria, resolvedFacetQueries, searchHandler);
+            contentTypes, includeSubTypesValue, resolvedFilterQueries, null, null, searchHandler);
 
   }
 

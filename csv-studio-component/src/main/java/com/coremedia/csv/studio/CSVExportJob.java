@@ -1,7 +1,7 @@
 package com.coremedia.csv.studio;
 
-import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.user.User;
+import com.coremedia.rest.cap.content.search.SearchServiceResult;
 import com.coremedia.rest.cap.jobs.Job;
 import com.coremedia.rest.cap.jobs.JobContext;
 import com.coremedia.rest.cap.jobs.JobExecutionException;
@@ -55,7 +55,16 @@ public class CSVExportJob implements Job {
       throw new JobExecutionException(CSVExportJobErrorCode.PARAM_TEMPLATE_MISSING);
 
     User user = csvExportAuthorization.getCurrentUser();
-    LOG.info("User {} started {}", user.getNameAtDomain(), this);
+    // TODO: get/log id of TrackedJob from jobContext
+    LOG.info("User {} started {} with {}", user.getNameAtDomain(), this, jobContext);
+
+    SearchServiceResult result = csvExportSearchService.search(query, limit, sortCriteria, folderUri, includeSubFolders,
+            contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
+
+    if(result.getTotal() > result.getHits().size()) {
+      // TODO: warn if more results founds than reported, point to csv.defaultItemLimit
+      LOG.warn("");
+    }
 
     float progress = 0.0f;
     while (progress < 1.0f) {
