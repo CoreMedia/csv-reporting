@@ -65,7 +65,9 @@ class CSVConfiguration {
 
   @Bean
   public CSVExportJobFactory csvExportJobFactory(CSVExportAuthorization csvExportAuthorization,
-                                                 CSVExportSearchService csvExportSearchService) {
-    return new CSVExportJobFactory(csvExportAuthorization, csvExportSearchService);
+                                                 CSVExportSearchService csvExportSearchService,
+                                                 CSVFileRetriever csvFileRetriever,
+                                                 ContentRepository contentRepository) {
+    return new CSVExportJobFactory(csvExportAuthorization, csvExportSearchService, csvFileRetriever, contentRepository);
   }
 }

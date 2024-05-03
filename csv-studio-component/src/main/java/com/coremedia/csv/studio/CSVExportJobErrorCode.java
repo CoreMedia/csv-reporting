@@ -6,6 +6,10 @@ public enum CSVExportJobErrorCode implements JobErrorCode {
 
   PARAM_TEMPLATE_MISSING,
 
-  USER_NOT_AUTHORIZED
+  USER_NOT_AUTHORIZED,
+
+  RETRIEVAL_FAILED,
+
+  GENERATION_FAILED
 
 }
