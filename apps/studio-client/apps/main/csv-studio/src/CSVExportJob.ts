@@ -9,13 +9,15 @@ import {mixin} from "@jangaroo/runtime";
 class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   static readonly #JOB_TYPE_CSV_REPORTER_EXPORT: string = "csvReporterExport";
 
-  protected params: any;
-
+  #params: any;
+  #name: string;
   #ctx: JobContext = null;
 
   constructor(params: any) {
     super();
-    this.params = params;
+    this.#name = this.generateName();
+    this.#params = params;
+    this.#params["name"] = this.#name;
   }
 
   override execute(jobContext: JobContext): void {
@@ -28,18 +30,21 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   }
 
   protected override getParams(): any {
-    return this.params;
+    return this.#params;
   }
 
   protected override mayRetry(): boolean {
     return false;
   }
 
-  getNameExpression():ValueExpression {
+  getNameExpression(): ValueExpression {
+    return ValueExpressionFactory.createFromValue(this.#name);
+  }
+
+  generateName(): string {
     let baseName: string = "CSV Export";
     let time: string = new Date().toLocaleString();
-    let name: string = `${baseName} ${time}`;
-    return ValueExpressionFactory.createFromValue(name);
+    return `${baseName} ${time}`;
   }
 
   getIconClsExpression(): ValueExpression {
@@ -56,6 +61,7 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   }
 
 }
+
 mixin(CSVExportJob, BackgroundJob);
 
 export default CSVExportJob;

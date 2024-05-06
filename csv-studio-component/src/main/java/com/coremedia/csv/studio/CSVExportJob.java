@@ -17,12 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.activation.MimeTypeParseException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
 
 import static java.lang.invoke.MethodHandles.lookup;
 
@@ -37,6 +32,7 @@ public class CSVExportJob implements Job {
 
   private final ContentRepository contentRepository;
 
+  private String name;
   private String query;
   private int limit;
   private List<String> sortCriteria;
@@ -62,8 +58,7 @@ public class CSVExportJob implements Job {
 
   @Nullable
   @Override
-  // TODO: refactor, getting kind of lengthy...
-  public Object call(@NonNull JobContext jobContext) throws JobExecutionException {
+  public Content call(@NonNull JobContext jobContext) throws JobExecutionException {
     // check authorization
     if (!csvExportAuthorization.isAuthorized())
       throw new JobExecutionException(CSVExportJobErrorCode.USER_NOT_AUTHORIZED);
@@ -78,27 +73,7 @@ public class CSVExportJob implements Job {
       // perform search for content to export
       SearchServiceResult result = csvExportSearchService.search(query, limit, sortCriteria, folderUri, includeSubFolders,
               contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
-      CSVFileResponse csvFileResponse = csvFileRetriever.retrieveCSV(template, result.getHits());
-      int status = csvFileResponse.getStatus();
-      if (status < 300) {
-        Content homeFolder = user.getHomeFolder();
-        // TODO: extract name generation (with default) to separate method
-        String contentDispositionHeader = csvFileResponse.getContentDispositionHeaderValue();
-        Pattern pattern = Pattern.compile("attachment; filename=\"(.*)\"");
-        Matcher matcher = pattern.matcher(contentDispositionHeader);
-        String exportContentName = null;
-        if(matcher.matches()) {
-          exportContentName = matcher.group(1);
-        }
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("title", exportContentName);
-        exportContent = contentRepository.createChild(homeFolder, exportContentName, "CMDownload", properties);
-        // TODO: some kind of batching (with job progress report) would be nice...
-        // TODO: also support abort...
-        byte[] data = csvFileResponse.getData();
-        Blob blob = contentRepository.getConnection().getBlobService().fromBytes(data, "text/csv");
-        exportContent.set("data", blob);
-      }
+      exportContent = processResult(result);
     } catch (IOException | MimeTypeParseException e) {
       LOG.error("Failed to retrieve CSV", e);
       throw new JobExecutionException(CSVExportJobErrorCode.RETRIEVAL_FAILED);
@@ -112,8 +87,32 @@ public class CSVExportJob implements Job {
       exportContent.checkIn();
       jobContext.notifyProgress(1.0f);
     }
-    // TODO: can the Job result be shown in Studio for the finished Job?
     return exportContent;
+  }
+
+  private Content processResult(SearchServiceResult result) throws IOException, MimeTypeParseException {
+    CSVFileResponse csvFileResponse = csvFileRetriever.retrieveCSV(template, result.getHits());
+    int status = csvFileResponse.getStatus();
+    Content exportContent = null;
+    if (status < 300) {
+      User user = csvExportAuthorization.getCurrentUser();
+      Content homeFolder = user.getHomeFolder();
+      String exportContentName = name.replace('/', '-');
+      Map<String, Object> properties = new HashMap<>();
+      properties.put("title", name);
+      exportContent = contentRepository.createChild(homeFolder, exportContentName, "CMDownload", properties);
+      // TODO: some kind of batching (with job progress report) would be nice...
+      // TODO: also support abort...
+      byte[] data = csvFileResponse.getData();
+      Blob blob = contentRepository.getConnection().getBlobService().fromBytes(data, "text/csv");
+      exportContent.set("data", blob);
+    }
+    return exportContent;
+  }
+
+  @SuppressWarnings("unused") //used by JobsFramework
+  public void setName(String name) {
+    this.name = name;
   }
 
   @JsonProperty(SearchParameterNames.QUERY)
@@ -190,7 +189,8 @@ public class CSVExportJob implements Job {
   @Override
   public String toString() {
     return "CSVExportJob{" +
-            "query='" + query + '\'' +
+            "name='" + name + '\'' +
+            ", query='" + query + '\'' +
             ", limit=" + limit +
             ", sortCriteria=" + sortCriteria +
             ", folderUri='" + folderUri + '\'' +
