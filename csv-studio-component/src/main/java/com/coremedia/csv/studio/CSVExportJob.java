@@ -68,6 +68,7 @@ public class CSVExportJob implements Job {
     if (template == null || template.isEmpty())
       throw new JobExecutionException(CSVExportJobErrorCode.PARAM_TEMPLATE_MISSING);
     User user = csvExportAuthorization.getCurrentUser();
+    long start = System.currentTimeMillis();
     LOG.info("User {} started {}", user.getNameAtDomain(), this);
     // create CMDownload to store export
     Content exportContent = null;
@@ -76,6 +77,8 @@ public class CSVExportJob implements Job {
       SearchServiceResult result = csvExportSearchService.search(query, limit, sortCriteria, folderUri, includeSubFolders,
               contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
       exportContent = processResult(result, jobContext);
+      long duration = (System.currentTimeMillis() - start) / 1000;
+      LOG.info("CSV Report generation successfully completed for {} content items in {}s for {} ", result.getHits().size(), duration, this);
     } catch (IOException | MimeTypeParseException e) {
       LOG.error("Failed to retrieve CSV", e);
       throw new JobExecutionException(CSVExportJobErrorCode.RETRIEVAL_FAILED);

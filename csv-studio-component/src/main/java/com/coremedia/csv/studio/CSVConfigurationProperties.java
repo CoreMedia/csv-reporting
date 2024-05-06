@@ -8,6 +8,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @DefaultAnnotation(NonNull.class)
 public class CSVConfigurationProperties {
   private String previewRestUrlPrefix = "http://cae-preview:8080/blueprint/servlet";
+
+  // limit of content items to export.
+  // -1 defaults to the default of the Studio's SearchService (5000)
   private int defaultItemLimit = -1;
 
   // number of rows/contents to fetch in a batch when using async Studio Job
