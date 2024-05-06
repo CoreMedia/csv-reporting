@@ -10,6 +10,9 @@ public class CSVConfigurationProperties {
   private String previewRestUrlPrefix = "http://cae-preview:8080/blueprint/servlet";
   private int defaultItemLimit = -1;
 
+  // number of rows/contents to fetch when using async Studio Job
+  private int batchSize = 2;
+
   public String getPreviewRestUrlPrefix() {
     return previewRestUrlPrefix;
   }
@@ -24,5 +27,13 @@ public class CSVConfigurationProperties {
 
   public void setDefaultItemLimit(int defaultItemLimit) {
     this.defaultItemLimit = defaultItemLimit;
+  }
+
+  public int getBatchSize() {
+    return batchSize;
+  }
+
+  public void setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
   }
 }

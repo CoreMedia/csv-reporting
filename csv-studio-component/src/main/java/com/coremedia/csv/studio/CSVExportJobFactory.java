@@ -30,6 +30,7 @@ public class CSVExportJobFactory implements JobFactory {
   @NonNull
   @Override
   public Job createJob() {
-    return new CSVExportJob(csvExportAuthorization, csvExportSearchService, csvFileRetriever, contentRepository);
+    return new CSVExportJob(csvExportAuthorization, csvExportSearchService,
+            csvFileRetriever, contentRepository);
   }
 }

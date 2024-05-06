@@ -79,7 +79,7 @@ public class CSVExportResource {
             contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
 
     // Use the CSVFileRetriever to request the file data from the CAE
-    CSVFileResponse csvFileResponse = csvFileRetriever.retrieveCSV(csvTemplate, result.getHits());
+    CSVFileResponse csvFileResponse = csvFileRetriever.retrieveCSV(csvTemplate, result.getHits(), true);
 
     // Build response, re-using Content-Disposition header value with file name
     if(csvFileResponse.getStatus() < 300) {

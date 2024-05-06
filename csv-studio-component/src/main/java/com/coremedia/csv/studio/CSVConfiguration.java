@@ -60,7 +60,8 @@ class CSVConfiguration {
 
   @Bean
   public CSVFileRetriever csvFileRetriever(CSVConfigurationProperties csvConfigurationProperties) {
-    return new CSVFileRetriever(csvConfigurationProperties.getPreviewRestUrlPrefix());
+    return new CSVFileRetriever(csvConfigurationProperties.getPreviewRestUrlPrefix(),
+            csvConfigurationProperties.getBatchSize());
   }
 
   @Bean
@@ -68,6 +69,7 @@ class CSVConfiguration {
                                                  CSVExportSearchService csvExportSearchService,
                                                  CSVFileRetriever csvFileRetriever,
                                                  ContentRepository contentRepository) {
-    return new CSVExportJobFactory(csvExportAuthorization, csvExportSearchService, csvFileRetriever, contentRepository);
+    return new CSVExportJobFactory(csvExportAuthorization, csvExportSearchService,
+            csvFileRetriever, contentRepository);
   }
 }

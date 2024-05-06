@@ -1,6 +1,7 @@
 package com.coremedia.csv.studio;
 
 import com.coremedia.cap.common.Blob;
+import com.coremedia.cap.common.BlobService;
 import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.user.User;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.activation.MimeTypeParseException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import static java.lang.invoke.MethodHandles.lookup;
@@ -82,31 +84,24 @@ public class CSVExportJob implements Job {
       throw new JobExecutionException(CSVExportJobErrorCode.GENERATION_FAILED);
     }
     // finish up
-    if (exportContent != null) {
-      contentRepository.getConnection().flush();
-      exportContent.checkIn();
-      jobContext.notifyProgress(1.0f);
-    }
+    contentRepository.getConnection().flush();
+    exportContent.checkIn();
+    jobContext.notifyProgress(1.0f);
     return exportContent;
   }
 
   private Content processResult(SearchServiceResult result) throws IOException, MimeTypeParseException {
-    CSVFileResponse csvFileResponse = csvFileRetriever.retrieveCSV(template, result.getHits());
-    int status = csvFileResponse.getStatus();
-    Content exportContent = null;
-    if (status < 300) {
-      User user = csvExportAuthorization.getCurrentUser();
-      Content homeFolder = user.getHomeFolder();
-      String exportContentName = name.replace('/', '-');
-      Map<String, Object> properties = new HashMap<>();
-      properties.put("title", name);
-      exportContent = contentRepository.createChild(homeFolder, exportContentName, "CMDownload", properties);
-      // TODO: some kind of batching (with job progress report) would be nice...
-      // TODO: also support abort...
-      byte[] data = csvFileResponse.getData();
-      Blob blob = contentRepository.getConnection().getBlobService().fromBytes(data, "text/csv");
-      exportContent.set("data", blob);
-    }
+    InputStream is = csvFileRetriever.getInputStream(template, result.getHits());
+    BlobService blobService = contentRepository.getConnection().getBlobService();
+    Blob data = blobService.fromInputStream(is, "text/csv");
+    // create CMDownload with data
+    User user = csvExportAuthorization.getCurrentUser();
+    Content homeFolder = user.getHomeFolder();
+    String exportContentName = name.replace('/', '-');
+    Map<String, Object> properties = new HashMap<>();
+    properties.put("title", name);
+    Content exportContent = contentRepository.createChild(homeFolder, exportContentName, "CMDownload", properties);
+    exportContent.set("data", data);
     return exportContent;
   }
 
