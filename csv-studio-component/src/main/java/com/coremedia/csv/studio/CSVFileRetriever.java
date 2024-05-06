@@ -3,6 +3,7 @@ package com.coremedia.csv.studio;
 import com.coremedia.cap.common.IdHelper;
 import com.coremedia.cap.content.Content;
 import com.coremedia.csv.common.CSVConstants;
+import com.coremedia.rest.cap.jobs.JobContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -86,21 +87,23 @@ public class CSVFileRetriever {
     }
   }
 
-  public InputStream getInputStream(String csvTemplate, List<Content> contents) {
-    return new BatchedInputStream(csvTemplate, contents);
+  public InputStream getInputStream(String csvTemplate, List<Content> contents, JobContext jobContext) {
+    return new BatchedInputStream(csvTemplate, contents, jobContext);
   }
 
   private class BatchedInputStream extends InputStream {
     private final String csvTemplate;
     private final int totalSize;
+    private final JobContext jobContext;
     private List<Content> remainingContents;
     private byte[] currentBatchData;
     private int currentBatchIndex;
     private boolean initialBatch;
 
-    public BatchedInputStream(String csvTemplate, List<Content> contents) {
+    public BatchedInputStream(String csvTemplate, List<Content> contents, JobContext jobContext) {
       this.csvTemplate = csvTemplate;
       this.totalSize = contents.size();
+      this.jobContext = jobContext;
       this.remainingContents = contents;
       this.currentBatchIndex = 0;
       this.initialBatch = true;
@@ -120,6 +123,7 @@ public class CSVFileRetriever {
       remainingContents = remainingContents.subList(toIndex, remainingContents.size());
       CSVFileResponse csvFileResponse = retrieveCSV(csvTemplate, contents, initialBatch);
       initialBatch = false;
+      updateJobProgress();
       int status = csvFileResponse.getStatus();
       if (status < 300) {
         currentBatchData = csvFileResponse.getData();
@@ -128,6 +132,13 @@ public class CSVFileRetriever {
       } else {
         throw new IOException("retrieveCSV returned status code " + status);
       }
+    }
+
+    private void updateJobProgress() {
+      float progress = ((float) totalSize - (float) remainingContents.size()) / (float) totalSize;
+      // allow for some time to write the report
+      progress = progress - 0.1f;
+      jobContext.notifyProgress(progress);
     }
   }
 }

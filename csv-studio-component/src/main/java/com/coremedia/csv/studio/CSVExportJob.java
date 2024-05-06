@@ -75,7 +75,7 @@ public class CSVExportJob implements Job {
       // perform search for content to export
       SearchServiceResult result = csvExportSearchService.search(query, limit, sortCriteria, folderUri, includeSubFolders,
               contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
-      exportContent = processResult(result);
+      exportContent = processResult(result, jobContext);
     } catch (IOException | MimeTypeParseException e) {
       LOG.error("Failed to retrieve CSV", e);
       throw new JobExecutionException(CSVExportJobErrorCode.RETRIEVAL_FAILED);
@@ -90,8 +90,8 @@ public class CSVExportJob implements Job {
     return exportContent;
   }
 
-  private Content processResult(SearchServiceResult result) throws IOException, MimeTypeParseException {
-    InputStream is = csvFileRetriever.getInputStream(template, result.getHits());
+  private Content processResult(SearchServiceResult result, JobContext jobContext) throws IOException, MimeTypeParseException {
+    InputStream is = csvFileRetriever.getInputStream(template, result.getHits(), jobContext);
     BlobService blobService = contentRepository.getConnection().getBlobService();
     Blob data = blobService.fromInputStream(is, "text/csv");
     // create CMDownload with data
