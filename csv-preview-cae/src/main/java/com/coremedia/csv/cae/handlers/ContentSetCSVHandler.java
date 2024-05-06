@@ -20,14 +20,15 @@ public class ContentSetCSVHandler extends BaseCSVHandler {
    * The link pattern which this handler will activate upon.
    */
   private static final String CSV_LINK_PATTERN = "/contentsetexport/{template}";
+  private static final String CSV_LINK_NO_HEADER_PATTERN = "/contentsetexportnoheader/{template}";
 
   /**
    * Handles the incoming request. Parses the list of content IDs and passes the request/response info to the
    * utility class.
    *
    * @param contentIds A list of content IDs to include in the export
-   * @param request  the HTTP Request, used for building content beans
-   * @param response the HTTP Response, used for building content beans and writing CSV
+   * @param request    the HTTP Request, used for building content beans
+   * @param response   the HTTP Response, used for building content beans and writing CSV
    * @throws IOException if an error occurs writing the CSV
    */
   @PostMapping(value = CSV_LINK_PATTERN,
@@ -40,7 +41,19 @@ public class ContentSetCSVHandler extends BaseCSVHandler {
                             HttpServletResponse response)
           throws IOException {
     String templateName = URLDecoder.decode(template, "UTF-8");
-    CSVUtil.generateCSV(contentIds, templateName, request, response);
+    CSVUtil.generateCSV(contentIds, templateName, true, request, response);
+  }
 
+  @PostMapping(value = CSV_LINK_NO_HEADER_PATTERN,
+          produces = "text/csv",
+          consumes = "application/json")
+  @ResponseBody
+  public void handleRequestNoHeader(@PathVariable("template") String template,
+                                    @RequestBody int[] contentIds,
+                                    HttpServletRequest request,
+                                    HttpServletResponse response)
+          throws IOException {
+    String templateName = URLDecoder.decode(template, "UTF-8");
+    CSVUtil.generateCSV(contentIds, templateName, false, request, response);
   }
 }

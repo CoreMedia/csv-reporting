@@ -64,7 +64,10 @@ public class CSVFileRetriever {
 
     // Set up a POST request to the content set export endpoint
     CloseableHttpClient client = HttpClients.createDefault();
-    String requestUrl = previewRestUrlPrefix + "/contentsetexport/" + URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
+    String requestUrl = previewRestUrlPrefix + "/contentsetexport";
+    if (!includeHeader)
+      requestUrl = requestUrl + "noheader";
+    requestUrl = requestUrl + "/" + URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
     HttpPost httpPost = new HttpPost(requestUrl);
     httpPost.setHeader("Content-Type", "application/json");
     HttpEntity requestEntity = new StringEntity(contentIdsList.toString());

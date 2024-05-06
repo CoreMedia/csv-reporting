@@ -8,7 +8,7 @@ public class CSVCaeCsrfIgnoringRequestMatcher implements CaeCsrfIgnoringRequestM
   @Override
   public boolean matches(HttpServletRequest httpServletRequest) {
     String requestUri = httpServletRequest.getRequestURI();
-    return requestUri != null && requestUri.contains("/contentsetexport/");
+    return requestUri != null && requestUri.contains("/contentsetexport");
   }
 
 }
