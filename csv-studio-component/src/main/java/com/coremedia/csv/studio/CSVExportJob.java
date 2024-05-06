@@ -10,6 +10,8 @@ import com.coremedia.rest.cap.jobs.Job;
 import com.coremedia.rest.cap.jobs.JobContext;
 import com.coremedia.rest.cap.jobs.JobExecutionException;
 import com.coremedia.rest.cap.content.SearchParameterNames;
+import com.coremedia.xml.MarkupFactory;
+import com.coremedia.xml.Markup;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ import java.util.*;
 import static java.lang.invoke.MethodHandles.lookup;
 
 public class CSVExportJob implements Job {
+  private static final String DIV_NS = "<div xmlns=\"http://www.coremedia.com/2003/richtext-1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">";
   private static final Logger LOG = LoggerFactory.getLogger(lookup().lookupClass());
 
   private final CSVExportAuthorization csvExportAuthorization;
@@ -78,6 +81,13 @@ public class CSVExportJob implements Job {
               contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
       exportContent = processResult(result, jobContext);
       long duration = (System.currentTimeMillis() - start) / 1000;
+      // also record some info in detailText
+      StringBuilder detailText = new StringBuilder();
+      detailText.append(DIV_NS);
+      detailText.append("<p>" + result.getHits().size() + " content item(s) exported in " + duration + " seconds</p>");
+      detailText.append("</div>");
+      Markup info = MarkupFactory.fromString(detailText.toString());
+      exportContent.set("detailText", info);
       LOG.info("CSV Report generation successfully completed for {} content items in {}s for {} ", result.getHits().size(), duration, this);
     } catch (IOException | MimeTypeParseException e) {
       LOG.error("Failed to retrieve CSV", e);
