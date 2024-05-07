@@ -17,6 +17,7 @@ import Job from "@coremedia/studio-client.cap-rest-client/common/Job";
 import jobService from "@coremedia/studio-client.cap-rest-client/common/jobService";
 import { AnyFunction } from "@jangaroo/runtime/types";
 import CSVExportJob from "./CSVExportJob";
+import TrackedJob from "@coremedia/studio-client.cap-rest-client/common/TrackedJob";
 
 interface CSVExportDialogBaseConfig extends Config<StudioDialog>, Partial<Pick<CSVExportDialogBase,
   "confirmationMessage"
@@ -111,14 +112,15 @@ class CSVExportDialogBase extends StudioDialog {
     params["template"] = this.getSelectedTemplateValueExpression().getValue();
     delete params["xclass"];
     const successCallback: AnyFunction = (): void => {};
-    const job: Job = new CSVExportJob(params);
-    jobService._.executeJob(
+    const job: CSVExportJob = new CSVExportJob(params);
+    const trackedJob: TrackedJob = jobService._.executeJob(
             job,
             //on success
             successCallback,
             //on error
             (result: any): void => {},
     );
+    job.startedTrackedJob = trackedJob;
     this.close();
   }
 

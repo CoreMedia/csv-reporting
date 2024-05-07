@@ -84,7 +84,7 @@ public class CSVExportJob implements Job {
       // also record some info in detailText
       StringBuilder detailText = new StringBuilder();
       detailText.append(DIV_NS);
-      detailText.append("<p>" + result.getHits().size() + " content item(s) exported in " + duration + " seconds</p>");
+      detailText.append("<p>" + result.getHits().size() + " content items exported in " + duration + " seconds</p>");
       detailText.append("</div>");
       Markup info = MarkupFactory.fromString(detailText.toString());
       exportContent.set("detailText", info);

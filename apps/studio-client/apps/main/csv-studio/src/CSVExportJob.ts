@@ -3,15 +3,22 @@ import JobContext from "@coremedia/studio-client.cap-rest-client/common/JobConte
 import ValueExpression from "@coremedia/studio-client.client-core/data/ValueExpression";
 import ValueExpressionFactory from "@coremedia/studio-client.client-core/data/ValueExpressionFactory";
 import BackgroundJob from "@coremedia/studio-client.main.editor-components/sdk/jobs/BackgroundJob";
+import TrackedJob from "@coremedia/studio-client.cap-rest-client/common/TrackedJob";
 import {AnyFunction} from "@jangaroo/runtime/types";
 import {mixin} from "@jangaroo/runtime";
+import ShowInRepositoryAction
+  from "@coremedia/studio-client.ext.library-services-toolkit/actions/ShowInRepositoryAction";
+import Config from "@jangaroo/runtime/Config";
 
 class CSVExportJob extends RemoteJobBase implements BackgroundJob {
+
   static readonly #JOB_TYPE_CSV_REPORTER_EXPORT: string = "csvReporterExport";
 
   #params: any;
   #name: string;
   #ctx: JobContext = null;
+  // TODO: refernce to JIRA ticket
+  #startedTrackedJob: TrackedJob = null;
 
   constructor(params: any) {
     super();
@@ -57,7 +64,19 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   }
 
   getSuccessHandler(): AnyFunction {
-    return null;
+    return (): void => {
+      const result: any = this.startedTrackedJob.getResult();
+      const showInRepositoryAction = new ShowInRepositoryAction(Config(ShowInRepositoryAction, {contentValueExpression: ValueExpressionFactory.createFromValue(result)}));
+      showInRepositoryAction.execute();
+    };
+  }
+
+  get startedTrackedJob(): TrackedJob {
+    return this.#startedTrackedJob;
+  }
+
+  set startedTrackedJob(value: TrackedJob) {
+    this.#startedTrackedJob = value;
   }
 
 }
