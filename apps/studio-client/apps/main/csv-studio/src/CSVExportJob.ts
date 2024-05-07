@@ -17,7 +17,7 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   #params: any;
   #name: string;
   #ctx: JobContext = null;
-  // TODO: refernce to JIRA ticket
+  // workaround for CMS-24848
   #startedTrackedJob: TrackedJob = null;
 
   constructor(params: any) {
