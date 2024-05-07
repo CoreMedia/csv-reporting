@@ -73,3 +73,9 @@ nt/Settings/Options/Settings/ReportingSettings.xml
 * [Configuration](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/Configuration.md)
 * [Automatic Reporting](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/AutomaticReporting.md)
 * [API](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/API.md)
+
+## See Also
+
+* [Used Third-Party Libraries](documentation/THIRD-PARTY.txt)
+
+  For license texts have a look at [third-party-licenses](documentation/third-party-licenses).

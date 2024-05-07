@@ -118,18 +118,19 @@ public abstract class BaseCSVUtil {
   /**
    * Generates a CSV file based on a list of content ids.
    *
-   * @param template the name of the template to use for the CSV file
-   * @param request  the HTTP request, used for building content beans
-   * @param response the HTTP response, used for building content beans and writing the csv
+   * @param template      the name of the template to use for the CSV file
+   * @param includeHeader whether to include headers/header row in response
+   * @param request       the HTTP request, used for building content beans
+   * @param response      the HTTP response, used for building content beans and writing the csv
    * @throws IOException if an error occurs generating the CSV file
    */
-  public void generateCSV(int[] contentIds, String template, HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public void generateCSV(int[] contentIds, String template, boolean includeHeader, HttpServletRequest request, HttpServletResponse response) throws IOException {
     CSVWriter csvWriter = null;
     try {
       List<Content> contentList = new ArrayList<>();
       String[] header = CSVConfig.getCSVHeaders(template);
       Map<String, String> propertiesMap = CSVConfig.getReportHeadersToContentProperties(template);
-      csvWriter = initializeCSVWriter(createCSVFileName(), header, response);
+      csvWriter = initializeCSVWriter(createCSVFileName(), header, includeHeader, response);
       for (int contentId : contentIds) {
         Content content = contentRepository.getContent(String.valueOf(contentId));
         if (content != null) {
@@ -157,13 +158,14 @@ public abstract class BaseCSVUtil {
   /**
    * Initializes the CSV writer.
    *
-   * @param csvFileName the filename of the CSV to which the content will be written
-   * @param header      the column headers for the CSV document of the content properties to write
-   * @param response    the http servlet response
+   * @param csvFileName   the filename of the CSV to which the content will be written
+   * @param header        the column headers for the CSV document of the content properties to write
+   * @param includeHeader Whether to render the header row
+   * @param response      the http servlet response
    * @return the CSVWriter of the response from the server
    * @throws IOException if an exception occurs initializing the CSV writer
    */
-  protected CSVWriter initializeCSVWriter(String csvFileName, String[] header, HttpServletResponse response) throws IOException {
+  protected CSVWriter initializeCSVWriter(String csvFileName, String[] header, boolean includeHeader, HttpServletResponse response) throws IOException {
     String headerKey = HTTP_HEADER_CONTENT_DISPOSITION;
     String headerValue = String.format("attachment; filename=\"%s\"",
             csvFileName);
@@ -171,7 +173,8 @@ public abstract class BaseCSVUtil {
     response.setCharacterEncoding("UTF-8"); // set the character encoding for internationalized characters
 
     CSVWriter csvWriter = new CSVWriter(response.getWriter());
-    csvWriter.writeHeader(header);
+    if (includeHeader)
+      csvWriter.writeHeader(header);
     csvWriter.flush();
     return csvWriter;
   }
@@ -365,12 +368,10 @@ public abstract class BaseCSVUtil {
     String link = "";
     try {
       link = linkFormatter.formatLink(bean, null, request, response, false);
-    }
-    catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException e) {
       LOG.debug("The specified content with ID: {} is unable to build a proper URL link. Exception:\n",
               getContentIdString(bean.getContent()), e);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       LOG.warn("An error occurred while trying to build the URL for content ID: {}",
               getContentIdString(bean.getContent()), e);
     }
@@ -467,7 +468,6 @@ public abstract class BaseCSVUtil {
    *
    * @param content      the content from which to determine the specified local setting variable's value
    * @param propertyName the name/path of the struct variable.
-   *
    * @return the String value of a Struct object after being converted to Markup. If there is no Struct content
    * property, returns empty String.
    */
@@ -610,6 +610,7 @@ public abstract class BaseCSVUtil {
 
   /**
    * Takes a Markup object and sanitizes the String so it does not break CSV parsing
+   *
    * @param markup the markup to sanitize & convert to String
    * @return the String value of the specified Markup, sanitized for CSV parsing.
    */
@@ -635,7 +636,7 @@ public abstract class BaseCSVUtil {
   /**
    * Scrubs csvRecord and sets the content id and status to fail.
    *
-   * @param content the content on which the failure occurred
+   * @param content   the content on which the failure occurred
    * @param csvRecord the record for the failed content
    */
   private void handleBadRecord(Content content, Map<String, String> csvRecord) {

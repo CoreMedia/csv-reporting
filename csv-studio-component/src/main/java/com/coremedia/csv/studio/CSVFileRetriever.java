@@ -3,6 +3,7 @@ package com.coremedia.csv.studio;
 import com.coremedia.cap.common.IdHelper;
 import com.coremedia.cap.content.Content;
 import com.coremedia.csv.common.CSVConstants;
+import com.coremedia.rest.cap.jobs.JobContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -13,6 +14,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -28,8 +30,14 @@ public class CSVFileRetriever {
    */
   private final String previewRestUrlPrefix;
 
-  public CSVFileRetriever(String previewRestUrlPrefix) {
+  /**
+   * The number of rows/contents to fetch when using async Studio Job.
+   */
+  private final int batchSize;
+
+  public CSVFileRetriever(String previewRestUrlPrefix, int batchSize) {
     this.previewRestUrlPrefix = previewRestUrlPrefix;
+    this.batchSize = batchSize;
   }
 
   /**
@@ -39,24 +47,27 @@ public class CSVFileRetriever {
    * @return A CSVFileResponse containing the bytes and name information of the returned file
    * @throws IOException Thrown when a request to the CAE fails
    */
-  public CSVFileResponse retrieveCSV(String csvTemplate, List<Content> contents) throws IOException {
+  public CSVFileResponse retrieveCSV(String csvTemplate, List<Content> contents, boolean includeHeader) throws IOException {
     // Create a comma-separated list of content IDs for the request body
     StringBuilder contentIdsList = new StringBuilder();
     contentIdsList.append('[');
     Iterator<Content> contentsIterator = contents.iterator();
-    while(contentsIterator.hasNext()) {
+    while (contentsIterator.hasNext()) {
       String contentId = contentsIterator.next().getId();
       // Use the numeric ID
       int parsed = IdHelper.parseContentId(contentId);
       contentIdsList.append(parsed);
-      if(contentsIterator.hasNext())
+      if (contentsIterator.hasNext())
         contentIdsList.append(",");
     }
     contentIdsList.append(']');
 
     // Set up a POST request to the content set export endpoint
     CloseableHttpClient client = HttpClients.createDefault();
-    String requestUrl = previewRestUrlPrefix + "/contentsetexport/"+ URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
+    String requestUrl = previewRestUrlPrefix + "/contentsetexport";
+    if (!includeHeader)
+      requestUrl = requestUrl + "noheader";
+    requestUrl = requestUrl + "/" + URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
     HttpPost httpPost = new HttpPost(requestUrl);
     httpPost.setHeader("Content-Type", "application/json");
     HttpEntity requestEntity = new StringEntity(contentIdsList.toString());
@@ -79,4 +90,58 @@ public class CSVFileRetriever {
     }
   }
 
+  public InputStream getInputStream(String csvTemplate, List<Content> contents, JobContext jobContext) {
+    return new BatchedInputStream(csvTemplate, contents, jobContext);
+  }
+
+  private class BatchedInputStream extends InputStream {
+    private final String csvTemplate;
+    private final int totalSize;
+    private final JobContext jobContext;
+    private List<Content> remainingContents;
+    private byte[] currentBatchData;
+    private int currentBatchIndex;
+    private boolean initialBatch;
+
+    public BatchedInputStream(String csvTemplate, List<Content> contents, JobContext jobContext) {
+      this.csvTemplate = csvTemplate;
+      this.totalSize = contents.size();
+      this.jobContext = jobContext;
+      this.remainingContents = contents;
+      this.currentBatchIndex = 0;
+      this.initialBatch = true;
+    }
+
+    @Override
+    public int read() throws IOException {
+      boolean hasData = (currentBatchData != null) && (currentBatchIndex < currentBatchData.length);
+      if (hasData)
+        return Byte.toUnsignedInt(currentBatchData[currentBatchIndex++]);
+      // check if we have remaining content to fetch
+      if (remainingContents.isEmpty())
+        return -1;
+      // fetch next batch
+      int toIndex = Math.min(batchSize, remainingContents.size());
+      List<Content> contents = remainingContents.subList(0, toIndex);
+      remainingContents = remainingContents.subList(toIndex, remainingContents.size());
+      CSVFileResponse csvFileResponse = retrieveCSV(csvTemplate, contents, initialBatch);
+      initialBatch = false;
+      updateJobProgress();
+      int status = csvFileResponse.getStatus();
+      if (status < 300) {
+        currentBatchData = csvFileResponse.getData();
+        currentBatchIndex = 0;
+        return read();
+      } else {
+        throw new IOException("retrieveCSV returned status code " + status);
+      }
+    }
+
+    private void updateJobProgress() {
+      float progress = ((float) totalSize - (float) remainingContents.size()) / (float) totalSize;
+      // allow for some time to write the report
+      progress = progress * 0.95f;
+      jobContext.notifyProgress(progress);
+    }
+  }
 }

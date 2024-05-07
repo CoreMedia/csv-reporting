@@ -13,6 +13,11 @@ import ObjectUtil from "@jangaroo/ext-ts/Object";
 import { bind, cast } from "@jangaroo/runtime";
 import Config from "@jangaroo/runtime/Config";
 import CSVExportDialog from "./CSVExportDialog";
+import Job from "@coremedia/studio-client.cap-rest-client/common/Job";
+import jobService from "@coremedia/studio-client.cap-rest-client/common/jobService";
+import { AnyFunction } from "@jangaroo/runtime/types";
+import CSVExportJob from "./CSVExportJob";
+import TrackedJob from "@coremedia/studio-client.cap-rest-client/common/TrackedJob";
 
 interface CSVExportDialogBaseConfig extends Config<StudioDialog>, Partial<Pick<CSVExportDialogBase,
   "confirmationMessage"
@@ -96,8 +101,26 @@ class CSVExportDialogBase extends StudioDialog {
     return options;
   }
 
-  protected handleExport(): void {
+  protected handleDirectExport(): void {
     window.open(this.getRequestURI(CSVExportDialogBase.getSearchParams()));
+    this.close();
+  }
+
+  protected handleBackgroundExport(): void {
+    const searchParams: SearchParameters = CSVExportDialogBase.getSearchParams();
+    const params = ObjectUtils.removeUndefinedOrNullProperties(searchParams);
+    params["template"] = this.getSelectedTemplateValueExpression().getValue();
+    delete params["xclass"];
+    const successCallback: AnyFunction = (): void => {};
+    const job: CSVExportJob = new CSVExportJob(params);
+    const trackedJob: TrackedJob = jobService._.executeJob(
+            job,
+            //on success
+            successCallback,
+            //on error
+            (result: any): void => {},
+    );
+    job.startedTrackedJob = trackedJob;
     this.close();
   }
 
