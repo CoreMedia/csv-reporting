@@ -140,7 +140,7 @@ public class CSVFileRetriever {
     private void updateJobProgress() {
       float progress = ((float) totalSize - (float) remainingContents.size()) / (float) totalSize;
       // allow for some time to write the report
-      progress = progress - 0.1f;
+      progress = progress * 0.95f;
       jobContext.notifyProgress(progress);
     }
   }

@@ -52,3 +52,8 @@ Open studio and open the Library. Specify the desired parameters for your export
 Open the export dialog box (do not hit “Export” or close the dialog). There will be a collapsible panel called “Query URL” that will display the Query URL of the selected search parameters. At the bottom of the dialog box, there is a “Copy Query URL” button. This can be used to directly copy the contents of “Query URL”. This value will be the input for the option `-q | -queryurl` for the command line tool.
 
 ![](https://github.com/CoreMedia/csv-reporting/blob/master/documentation/img/AutoJob2.png)
+
+Using the Background Job functionality
+------------------------------------------
+The provided script uses the synchronous endpoint for the CSV export generation.
+Please see the notes in the [API documentation](API.md) for the Background Job calls in case you want to automate it. 
