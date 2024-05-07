@@ -3,7 +3,6 @@ import ValueExpression from "@coremedia/studio-client.client-core/data/ValueExpr
 import ContentAction from "@coremedia/studio-client.ext.cap-base-components/actions/ContentAction";
 import Config from "@jangaroo/runtime/Config";
 import ConfigUtils from "@jangaroo/runtime/ConfigUtils";
-import int from "@jangaroo/runtime/int";
 import resourceManager from "@jangaroo/runtime/l10n/resourceManager";
 import CSVExportDialog from "./CSVExportDialog";
 import CSVExportStudioPlugin_properties from "./CSVExportStudioPlugin_properties";
@@ -51,8 +50,9 @@ class OpenCSVExportContentSetDialogActionBase extends ContentAction {
   }
 
   #createExportContentSetDialog(contents: Array<any>): void {
-    const itemCount: int = contents.length;
-    const message = resourceManager.getString(CSVExportStudioPlugin_properties, "exportDialog_resultCount_text", [itemCount]);
+    // let's not how the count, the CSV exporter might export more depending on its configuration (see csv.defaultItemLimit)
+    // const itemCount: int = contents.length;
+    const message = resourceManager.getString(CSVExportStudioPlugin_properties, "exportDialog_exportSearchResult_text");
     const dialog = new CSVExportDialog(Config(CSVExportDialog, { confirmationMessage: message }));
     dialog.show();
 
