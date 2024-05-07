@@ -100,14 +100,16 @@ class CSVExportDialogBase extends StudioDialog {
     return options;
   }
 
-  protected handleExport(): void {
-    // old implementation for synchronous request
-    //window.open(this.getRequestURI(CSVExportDialogBase.getSearchParams()));
+  protected handleDirectExport(): void {
+    window.open(this.getRequestURI(CSVExportDialogBase.getSearchParams()));
+    this.close();
+  }
+
+  protected handleBackgroundExport(): void {
     const searchParams: SearchParameters = CSVExportDialogBase.getSearchParams();
     const params = ObjectUtils.removeUndefinedOrNullProperties(searchParams);
     params["template"] = this.getSelectedTemplateValueExpression().getValue();
     delete params["xclass"];
-
     const successCallback: AnyFunction = (): void => {};
     const job: Job = new CSVExportJob(params);
     jobService._.executeJob(

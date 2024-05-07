@@ -13,7 +13,8 @@ interface CSVExportStudioPlugin_properties {
   requestURLDialog_title: string;
   copyRequestURL_text: string;
   exportDialog_title: string;
-  exportDialog_exportButton_text: string;
+  exportDialog_directExportButton_text: string;
+  exportDialog_backgroundExportButton_text: string;
   exportDialog_resultCount_text: string;
   exportDialog_exportRootFolder_text: string;
   exportDialog_exportFolder_text: string;
@@ -30,7 +31,8 @@ const CSVExportStudioPlugin_properties: CSVExportStudioPlugin_properties = {
   requestURLDialog_title: "Query URL",
   copyRequestURL_text: "Copy Query URL",
   exportDialog_title: "Export CSV",
-  exportDialog_exportButton_text: "Export",
+  exportDialog_directExportButton_text: "Direct Export",
+  exportDialog_backgroundExportButton_text: "Background Export",
   exportDialog_resultCount_text: "Export {0} items?",
   exportDialog_exportRootFolder_text: "Export all items in folder?",
   exportDialog_exportFolder_text: "Export all items in folder '{0}'?",

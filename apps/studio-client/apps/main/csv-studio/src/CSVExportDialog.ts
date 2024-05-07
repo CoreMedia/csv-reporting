@@ -109,11 +109,24 @@ class CSVExportDialog extends CSVExportDialogBase {
       ],
       buttons: [
         Config(Button, {
-          itemId: "exportBtn",
+          itemId: "backgroundExportBtn",
           ui: ButtonSkin.FOOTER_PRIMARY.getSkin(),
           scale: "small",
-          text: CSVExportStudioPlugin_properties.exportDialog_exportButton_text,
-          handler: bind(this, this.handleExport),
+          text: CSVExportStudioPlugin_properties.exportDialog_backgroundExportButton_text,
+          handler: bind(this, this.handleBackgroundExport),
+          plugins: [
+            Config(BindPropertyPlugin, {
+              componentProperty: "disabled",
+              bindTo: this.getDisabledValueExpression(),
+            }),
+          ],
+        }),
+        Config(Button, {
+          itemId: "directExportBtn",
+          ui: ButtonSkin.FOOTER_PRIMARY.getSkin(),
+          scale: "small",
+          text: CSVExportStudioPlugin_properties.exportDialog_directExportButton_text,
+          handler: bind(this, this.handleDirectExport),
           plugins: [
             Config(BindPropertyPlugin, {
               componentProperty: "disabled",
