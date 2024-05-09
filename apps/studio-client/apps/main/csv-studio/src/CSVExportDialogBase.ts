@@ -13,11 +13,14 @@ import ObjectUtil from "@jangaroo/ext-ts/Object";
 import { bind, cast } from "@jangaroo/runtime";
 import Config from "@jangaroo/runtime/Config";
 import CSVExportDialog from "./CSVExportDialog";
-import Job from "@coremedia/studio-client.cap-rest-client/common/Job";
 import jobService from "@coremedia/studio-client.cap-rest-client/common/jobService";
 import { AnyFunction } from "@jangaroo/runtime/types";
 import CSVExportJob from "./CSVExportJob";
 import TrackedJob from "@coremedia/studio-client.cap-rest-client/common/TrackedJob";
+import toastService from "@coremedia/studio-client.ext.toast-components/toastService";
+import StringUtil from "@coremedia/studio-client.client-core/util/StringUtil";
+import ValidationState from "@coremedia/studio-client.ext.ui-components/mixins/ValidationState";
+import CSVExportStudioPlugin_properties from "./CSVExportStudioPlugin_properties";
 
 interface CSVExportDialogBaseConfig extends Config<StudioDialog>, Partial<Pick<CSVExportDialogBase,
   "confirmationMessage"
@@ -111,14 +114,21 @@ class CSVExportDialogBase extends StudioDialog {
     const params = ObjectUtils.removeUndefinedOrNullProperties(searchParams);
     params["template"] = this.getSelectedTemplateValueExpression().getValue();
     delete params["xclass"];
-    const successCallback: AnyFunction = (): void => {};
     const job: CSVExportJob = new CSVExportJob(params);
+    const successCallback: AnyFunction = (): void => {
+      const title = CSVExportStudioPlugin_properties.exportToast_success_title;
+      const msg = StringUtil.format(CSVExportStudioPlugin_properties.exportToast_success_text, job.name);
+      toastService._.showToast(title, msg, ValidationState.SUCCESS);
+    };
+    const failureCallback: AnyFunction = (): void => {
+      const title = CSVExportStudioPlugin_properties.exportToast_failure_title;
+      const msg = StringUtil.format(CSVExportStudioPlugin_properties.exportToast_failure_text, job.name);
+      toastService._.showToast(title, msg, ValidationState.ERROR);
+    };
     const trackedJob: TrackedJob = jobService._.executeJob(
             job,
-            //on success
             successCallback,
-            //on error
-            (result: any): void => {},
+            failureCallback
     );
     job.startedTrackedJob = trackedJob;
     this.close();
