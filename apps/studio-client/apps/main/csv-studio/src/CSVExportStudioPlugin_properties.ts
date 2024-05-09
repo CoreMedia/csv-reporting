@@ -19,6 +19,10 @@ interface CSVExportStudioPlugin_properties {
   exportDialog_exportRootFolder_text: string;
   exportDialog_exportFolder_text: string;
   exportDialog_templateSelector_label: string;
+  exportToast_success_title: string;
+  exportToast_success_text: string;
+  exportToast_failure_title: string;
+  exportToast_failure_text: string;
 }
 
 /**
@@ -37,6 +41,10 @@ const CSVExportStudioPlugin_properties: CSVExportStudioPlugin_properties = {
   exportDialog_exportRootFolder_text: "Export all items in folder?",
   exportDialog_exportFolder_text: "Export all items in folder '{0}'?",
   exportDialog_templateSelector_label: "Template",
+  exportToast_success_title: "Background CSV Export Success",
+  exportToast_success_text: "{0} completed successfully.",
+  exportToast_failure_title: "Background CSV Export Failure",
+  exportToast_failure_text: "{0} failed."
 };
 
 export default CSVExportStudioPlugin_properties;

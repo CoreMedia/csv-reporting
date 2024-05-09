@@ -13,6 +13,7 @@
     "@coremedia/studio-client.ext.ui-components": "2310.1.0",
     "@coremedia/studio-client.main.editor-components": "2310.1.0",
     "@coremedia/studio-client.ext.library-services-toolkit": "2310.1.0",
+    "@coremedia/studio-client.ext.toast-components": "2310.1.0",
     "@jangaroo/ext-ts": "^1.0.3",
     "@jangaroo/runtime": "^1.5.0"
   },

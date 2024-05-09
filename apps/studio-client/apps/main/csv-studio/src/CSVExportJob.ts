@@ -44,6 +44,10 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
     return false;
   }
 
+  get name(): string {
+    return this.#name;
+  }
+
   getNameExpression(): ValueExpression {
     return ValueExpressionFactory.createFromValue(this.#name);
   }
