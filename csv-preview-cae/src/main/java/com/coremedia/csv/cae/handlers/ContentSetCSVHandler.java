@@ -1,10 +1,11 @@
 package com.coremedia.csv.cae.handlers;
 
 import com.coremedia.objectserver.web.links.Link;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLDecoder;
 
@@ -35,6 +36,7 @@ public class ContentSetCSVHandler extends BaseCSVHandler {
           produces = "text/csv",
           consumes = "application/json")
   @ResponseBody
+  @Order(1)
   public void handleRequest(@PathVariable("template") String template,
                             @RequestBody int[] contentIds,
                             HttpServletRequest request,
@@ -44,10 +46,13 @@ public class ContentSetCSVHandler extends BaseCSVHandler {
     CSVUtil.generateCSV(contentIds, templateName, true, request, response);
   }
 
+
+
   @PostMapping(value = CSV_LINK_NO_HEADER_PATTERN,
           produces = "text/csv",
           consumes = "application/json")
   @ResponseBody
+  @Order(1)
   public void handleRequestNoHeader(@PathVariable("template") String template,
                                     @RequestBody int[] contentIds,
                                     HttpServletRequest request,

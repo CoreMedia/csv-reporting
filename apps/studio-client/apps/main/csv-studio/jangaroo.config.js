@@ -16,6 +16,10 @@ module.exports = jangarooConfig({
         mainClass: "com.coremedia.csv.studio.CSVExportStudioPlugin",
         name: "CSV Exporter",
       },
+      {
+        mainClass: "com.coremedia.csv.studio.CSVExportStudioPlugin",
+        name: "CSV Exporter2",
+      },
     ],
   },
   command: {

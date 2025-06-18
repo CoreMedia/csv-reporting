@@ -3,7 +3,7 @@ package com.coremedia.csv.common;
 import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.struct.Struct;
-import org.springframework.beans.factory.annotation.Required;
+import jakarta.annotation.PostConstruct;
 
 import java.util.HashMap;
 import java.util.List;
@@ -99,7 +99,6 @@ public class CSVConfig {
    *
    * @param contentRepository the content repository to set
    */
-  @Required
   public void setContentRepository(ContentRepository contentRepository) {
     this.contentRepository = contentRepository;
   }
@@ -109,8 +108,17 @@ public class CSVConfig {
    *
    * @param settingsPath the settings path to set
    */
-  @Required
   public void setSettingsPath(String settingsPath) {
     this.settingsPath = settingsPath;
+  }
+
+  @PostConstruct
+  public void validateProperties() {
+    if (contentRepository == null) {
+      throw new IllegalStateException("Required property is not set: contentRepository");
+    }
+    if (settingsPath == null) {
+      throw new IllegalStateException("Required property is not set: settingsPath");
+    }
   }
 }

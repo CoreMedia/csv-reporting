@@ -18,13 +18,12 @@ import com.coremedia.objectserver.web.links.LinkFormatter;
 import com.coremedia.xml.Markup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.coremedia.csv.common.CSVConstants.*;
 
@@ -652,7 +651,7 @@ public abstract class BaseCSVUtil {
    *
    * @param settingsService the settings service to set
    */
-  @Required
+  @Autowired
   public void setSettingsService(SettingsService settingsService) {
     this.settingsService = settingsService;
   }
@@ -662,7 +661,7 @@ public abstract class BaseCSVUtil {
    *
    * @param contentBeanFactory the content bean factory to set
    */
-  @Required
+  @Autowired
   public void setContentBeanFactory(ContentBeanFactory contentBeanFactory) {
     this.contentBeanFactory = contentBeanFactory;
   }
@@ -672,7 +671,7 @@ public abstract class BaseCSVUtil {
    *
    * @param contentRepository the content repository to set
    */
-  @Required
+  @Autowired
   public void setContentRepository(ContentRepository contentRepository) {
     this.contentRepository = contentRepository;
   }
@@ -682,7 +681,7 @@ public abstract class BaseCSVUtil {
    *
    * @param linkFormatter the link formatter to set
    */
-  @Required
+  @Autowired
   public void setLinkFormatter(LinkFormatter linkFormatter) {
     this.linkFormatter = linkFormatter;
   }
@@ -692,7 +691,7 @@ public abstract class BaseCSVUtil {
    *
    * @param CSVConfig the CSVConfig to set
    */
-  @Required
+  @Autowired
   public void setCSVConfig(CSVConfig CSVConfig) {
     this.CSVConfig = CSVConfig;
   }
@@ -702,7 +701,7 @@ public abstract class BaseCSVUtil {
    *
    * @param filenamePrefix the file name prefix for generated files
    */
-  @Required
+  @Autowired
   public void setFilenamePrefix(String filenamePrefix) {
     this.filenamePrefix = filenamePrefix;
   }
@@ -712,7 +711,7 @@ public abstract class BaseCSVUtil {
    *
    * @param contentBatchPrefetchSize the batch size for fetching content
    */
-  @Required
+  @Autowired
   public void setContentBatchPrefetchSize(int contentBatchPrefetchSize) {
     this.contentBatchPrefetchSize = contentBatchPrefetchSize;
   }

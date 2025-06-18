@@ -13,9 +13,11 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
+import jakarta.annotation.PostConstruct;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.*;
 import java.util.List;
 import java.util.Map;
@@ -284,7 +286,7 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
      *
      * @param reportHeadersToContentProperties the map to set as the report headers to content properties map
      */
-    @Required
+    @Autowired
     public void setReportHeadersToContentProperties(Map<String, String> reportHeadersToContentProperties) {
         this.reportHeadersToContentProperties = reportHeadersToContentProperties;
     }
@@ -294,6 +296,7 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
    *
    * @param authorizedGroups the authorized groups to set
    */
+  @Autowired
   public void setAuthorizedGroups(List<String> authorizedGroups) {
     this.authorizedGroups = authorizedGroups;
   }
@@ -303,6 +306,7 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
    *
    * @param restrictToAuthorizedGroups the value to set
    */
+  @Autowired
   public void setRestrictToAuthorizedGroups(boolean restrictToAuthorizedGroups) {
     this.restrictToAuthorizedGroups = restrictToAuthorizedGroups;
   }

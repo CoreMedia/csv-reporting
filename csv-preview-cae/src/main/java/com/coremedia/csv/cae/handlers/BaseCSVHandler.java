@@ -2,7 +2,7 @@ package com.coremedia.csv.cae.handlers;
 
 import com.coremedia.csv.common.CSVConfig;
 import com.coremedia.csv.cae.utils.BaseCSVUtil;
-import org.springframework.beans.factory.annotation.Required;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Abstract handler that serves as a parent for all CSV file request handlers.
@@ -25,7 +25,7 @@ public abstract class BaseCSVHandler {
    *
    * @param CSVUtil the Utility class to set
    */
-  @Required
+  @Autowired
   public void setCSVUtil(BaseCSVUtil CSVUtil) {
     this.CSVUtil = CSVUtil;
   }
@@ -35,7 +35,7 @@ public abstract class BaseCSVHandler {
    *
    * @param CSVConfig the CSVConfig to set
    */
-  @Required
+  @Autowired
   public void setCSVConfig(CSVConfig CSVConfig) {
     this.CSVConfig = CSVConfig;
   }
