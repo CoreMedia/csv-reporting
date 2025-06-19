@@ -1,9 +1,13 @@
 package com.coremedia.csv.studio;
 
+import com.coremedia.cap.content.Content;
 import com.coremedia.csv.common.CSVConstants;
+import com.coremedia.csv.studio.utils.BaseCSVUtil;
 import com.coremedia.rest.cap.content.SearchParameterNames;
 import com.coremedia.rest.cap.content.search.SearchServiceResult;
 import com.coremedia.rest.exception.BadRequestException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -39,17 +46,67 @@ public class CSVExportResource {
    */
   private final CSVFileRetriever csvFileRetriever;
 
-  public CSVExportResource(CSVExportAuthorization csvExportAuthorization, CSVExportSearchService csvExportSearchService, CSVFileRetriever csvFileRetriever) {
+  private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHH:mm");
+
+  private final BaseCSVUtil baseCSVUtil;
+
+  public CSVExportResource(CSVExportAuthorization csvExportAuthorization, CSVExportSearchService csvExportSearchService,
+                           CSVFileRetriever csvFileRetriever, BaseCSVUtil baseCSVUtil) {
     this.csvExportAuthorization = csvExportAuthorization;
     this.csvExportSearchService = csvExportSearchService;
     this.csvFileRetriever = csvFileRetriever;
+    this.baseCSVUtil = baseCSVUtil;
   }
+
+
+
+  @GetMapping(value="exportcsv/contentset", produces="text/csv")
+  public ResponseEntity exportCSV(@RequestParam(value = SearchParameterNames.QUERY, required = false) final String query,
+                                  @RequestParam(value = SearchParameterNames.LIMIT, required = false) final int limit,
+                                  @RequestParam(value = SearchParameterNames.ORDER_BY, required = false) final List<String> sortCriteria,
+                                  @RequestParam(value = SearchParameterNames.FOLDER, required = false) final String folderUri,
+                                  @RequestParam(value = SearchParameterNames.INCLUDE_SUB_FOLDERS, required = false) final Boolean includeSubFolders,
+                                  @RequestParam(value = SearchParameterNames.CONTENT_TYPE, required = false) final Set<String> contentTypeNames,
+                                  @RequestParam(value = SearchParameterNames.INCLUDE_SUB_TYPES, required = false) final Boolean includeSubTypes,
+                                  @RequestParam(value = SearchParameterNames.FILTER_QUERY, required = false) final List<String> filterQueries,
+                                  @RequestParam(value = SearchParameterNames.FACET_FIELD, required = false) final List<String> facetFieldCriteria,
+                                  @RequestParam(value = SearchParameterNames.FACET_QUERY, required = false) final List<String> facetQueries,
+                                  @RequestParam(value = SearchParameterNames.SEARCH_HANDLER, required = false) String searchHandler,
+                                  @RequestParam(value = TEMPLATE_PARAMETER, required = false) String csvTemplate,
+                                  HttpServletRequest httpServletRequest)
+          throws BadRequestException, IOException {
+
+    // Verify that the template has been set, we do this here rather than in the RequestParam so that we can give a
+    // better message than just a generic 400
+    if (csvTemplate == null || csvTemplate.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No CSV Template Parameter defined.");
+    }
+
+    // Check that the user is a member of the requisite group
+    if(!csvExportAuthorization.isAuthorized()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    SearchServiceResult result = csvExportSearchService.search(query, limit, sortCriteria, folderUri, includeSubFolders,
+            contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintWriter writer = new PrintWriter(baos);
+    baseCSVUtil.generateCSV(result.getHits().toArray(new Content[0]), csvTemplate, true, httpServletRequest, writer);
+    String dateTime = formatter.format(java.time.LocalDateTime.now());
+    return ResponseEntity.ok()
+            .header(CSVConstants.HTTP_HEADER_CONTENT_DISPOSITION, "attachment; filename=\"" + csvTemplate + "_"+dateTime+".csv\"")
+            .contentType(MediaType.valueOf(CSVConstants.CSV_MEDIA_TYPE))
+            .body(baos.toByteArray());
+
+
+  }
+
 
   /**
    * CSV Export endpoint: parameters are re-used from the /search API endpoint.
    */
-  @GetMapping(value="exportcsv/contentset", produces="text/csv")
-  public ResponseEntity exportCSV(@RequestParam(value = SearchParameterNames.QUERY, required = false) final String query,
+  @GetMapping(value="exportcsv/oldcontentset", produces="text/csv")
+  public ResponseEntity exportCSVOld(@RequestParam(value = SearchParameterNames.QUERY, required = false) final String query,
                                   @RequestParam(value = SearchParameterNames.LIMIT, required = false) final int limit,
                                   @RequestParam(value = SearchParameterNames.ORDER_BY, required = false) final List<String> sortCriteria,
                                   @RequestParam(value = SearchParameterNames.FOLDER, required = false) final String folderUri,

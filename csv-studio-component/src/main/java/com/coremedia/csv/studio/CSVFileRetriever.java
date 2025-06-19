@@ -70,8 +70,7 @@ public class CSVFileRetriever {
     requestUrl = requestUrl + "/" + URLEncoder.encode(csvTemplate, StandardCharsets.UTF_8);
     HttpPost httpPost = new HttpPost(requestUrl);
     httpPost.setHeader("Content-Type", "application/json");
-    HttpEntity requestEntity = new StringEntity(conte
-            ntIdsList.toString());
+    HttpEntity requestEntity = new StringEntity(contentIdsList.toString());
     httpPost.setEntity(requestEntity);
 
     CloseableHttpResponse response = null;

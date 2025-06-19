@@ -1,6 +1,8 @@
 package com.coremedia.csv.studio;
 
 import com.coremedia.cap.content.ContentRepository;
+import com.coremedia.csv.common.CSVConfig;
+import com.coremedia.csv.studio.utils.BaseCSVUtil;
 import com.coremedia.rest.cap.CapRestServiceBaseConfiguration;
 import com.coremedia.rest.cap.CapRestServiceSearchConfiguration;
 import com.coremedia.rest.cap.config.StudioConfigurationProperties;
@@ -13,6 +15,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import com.coremedia.blueprint.base.settings.SettingsService;
 
 import java.util.List;
 
@@ -54,8 +57,9 @@ class CSVConfiguration {
   @Bean
   public CSVExportResource csvExportResource(CSVExportAuthorization csvExportAuthorization,
                                              CSVExportSearchService csvExportSearchService,
-                                             CSVFileRetriever csvFileRetriever) {
-    return new CSVExportResource(csvExportAuthorization, csvExportSearchService, csvFileRetriever);
+                                             CSVFileRetriever csvFileRetriever,
+                                             BaseCSVUtil baseCSVUtil) {
+    return new CSVExportResource(csvExportAuthorization, csvExportSearchService, csvFileRetriever, baseCSVUtil);
   }
 
   @Bean
@@ -71,5 +75,13 @@ class CSVConfiguration {
                                                  ContentRepository contentRepository) {
     return new CSVExportJobFactory(csvExportAuthorization, csvExportSearchService,
             csvFileRetriever, contentRepository);
+  }
+
+  @Bean
+  public BaseCSVUtil baseCSVUtil(ContentRepository contentRepository,
+                                 SettingsService settingsService,
+                                 CSVConfig csvConfig
+                                 ) {
+    return new BaseCSVUtil(contentRepository, settingsService, csvConfig, 100, "filex");
   }
 }
