@@ -14,7 +14,7 @@ public class CSVWriter {
   private final CSVPrinter csvPrinter;
 
   public CSVWriter(Writer writer) throws IOException {
-    csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL);
+    csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL.withDelimiter(','));
   }
 
   public void writeHeader(String[] header) throws IOException {

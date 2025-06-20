@@ -286,8 +286,10 @@ public  class BaseCSVUtil {
       csvRecord.put(COLUMN_NAME, metadataProperty);
     }
     if (headerList.contains(COLUMN_PATH)) {
-      metadataProperty = content.getPath();
-      csvRecord.put(COLUMN_PATH, metadataProperty);
+      csvRecord.put(COLUMN_PATH, content.getPath());
+    }
+    if (headerList.contains(COLUMN_SITE_PATH)) {
+      csvRecord.put(COLUMN_PATH, getSitePath(content.getPath()));
     }
     if (headerList.contains(COLUMN_TYPE)) {
       metadataProperty = content.getType().getName();
@@ -320,6 +322,18 @@ public  class BaseCSVUtil {
       Calendar publicationDate = publicationService.getPublicationDate(content);
       String creationDateStr = publicationDate != null ? dateFormat.format(publicationDate.getTime()) : "";
       csvRecord.put(COLUMN_PUBLICATION_DATE, creationDateStr);
+    }
+  }
+
+  protected static  String getSitePath(String path) {
+    if (path == null || path.isEmpty()) {
+      return "";
+    }
+    if (!path.startsWith("/Sites/")) {
+      return path;
+    } else {
+      String[] segments = path.split("/", 6);
+      return segments.length < 6 ? path : segments[5];
     }
   }
 

@@ -37,6 +37,11 @@ public class CSVConstants {
   public static String COLUMN_PATH = "Path";
 
   /**
+   * The name of the column containing a content's Path.
+   */
+  public static String COLUMN_SITE_PATH = "SitePath";
+
+  /**
    * The name of the column containing a content's URL.
    */
   public static String COLUMN_URL = "URL";
