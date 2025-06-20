@@ -1,6 +1,5 @@
 package com.coremedia.csv.studio;
 
-import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.csv.studio.utils.BaseCSVUtil;
 import com.coremedia.rest.cap.jobs.JobFactory;

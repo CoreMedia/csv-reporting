@@ -7,7 +7,6 @@ import com.coremedia.rest.cap.content.SearchParameterNames;
 import com.coremedia.rest.cap.content.search.SearchServiceResult;
 import com.coremedia.rest.exception.BadRequestException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 

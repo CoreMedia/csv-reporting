@@ -23,7 +23,6 @@ import jakarta.activation.MimeTypeParseException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.*;
 
@@ -86,7 +85,7 @@ public class CSVExportJob implements Job {
       // perform search for content to export
       SearchServiceResult result = csvExportSearchService.search(query, limit, sortCriteria, folderUri, includeSubFolders,
               contentTypeNames, includeSubTypes, filterQueries, facetFieldCriteria, facetQueries, searchHandler);
-      exportContent = processResult(result, jobContext);
+      exportContent = processResult(result);
       long duration = (System.currentTimeMillis() - start) / 1000;
       // also record some info in detailText
       StringBuilder detailText = new StringBuilder();
@@ -110,7 +109,7 @@ public class CSVExportJob implements Job {
     return exportContent;
   }
 
-  private Content processResult(SearchServiceResult result, JobContext jobContext) throws IOException, MimeTypeParseException {
+  private Content processResult(SearchServiceResult result) throws IOException, MimeTypeParseException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter writer = new PrintWriter(baos);
     baseCSVUtil.generateCSV(result.getHits().toArray(new Content[0]), template, true, writer);
