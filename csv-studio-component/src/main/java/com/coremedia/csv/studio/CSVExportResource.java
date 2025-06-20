@@ -91,7 +91,7 @@ public class CSVExportResource {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter writer = new PrintWriter(baos);
-    baseCSVUtil.generateCSV(result.getHits().toArray(new Content[0]), csvTemplate, true, httpServletRequest, writer);
+    baseCSVUtil.generateCSV(result.getHits().toArray(new Content[0]), csvTemplate, true, writer);
     String dateTime = formatter.format(java.time.LocalDateTime.now());
     return ResponseEntity.ok()
             .header(CSVConstants.HTTP_HEADER_CONTENT_DISPOSITION, "attachment; filename=\"" + csvTemplate + "_"+dateTime+".csv\"")

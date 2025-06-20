@@ -129,28 +129,27 @@ public  class BaseCSVUtil {
    *
    * @param template      the name of the template to use for the CSV file
    * @param includeHeader whether to include headers/header row in response
-   * @param request       the HTTP request, used for building content beans
    * @param writer      the HTTP response, used for building content beans and writing the csv
    * @throws IOException if an error occurs generating the CSV file
    */
-  public void generateCSV(Content[] contents, String template, boolean includeHeader, HttpServletRequest request, PrintWriter writer) throws IOException {
+  public void generateCSV(Content[] contents, String template, boolean includeHeader, PrintWriter writer) throws IOException {
     CSVWriter csvWriter = null;
     try {
       List<Content> contentList = new ArrayList<>();
       String[] header = CSVConfig.getCSVHeaders(template);
       Map<String, String> propertiesMap = CSVConfig.getReportHeadersToContentProperties(template);
-      csvWriter = initializeCSVWriter(createCSVFileName(), header, includeHeader, writer);
+      csvWriter = initializeCSVWriter(header, includeHeader, writer);
       for (Content content : contents) {
         if (content != null) {
           contentList.add(content);
           if (contentList.size() == contentBatchPrefetchSize) { // if batch size is reached, write a complete batch
-            writeCSV(csvWriter, contentList, header, propertiesMap, request, writer);
+            writeCSV(csvWriter, contentList, header, propertiesMap);
             contentList.clear();
           }
         }
       }
       if (!contentList.isEmpty()) { // finish writing last batch
-        writeCSV(csvWriter, contentList, header, propertiesMap, request, writer);
+        writeCSV(csvWriter, contentList, header, propertiesMap);
       }
 
     } catch (NoSuchPropertyDescriptorException e) {
@@ -166,14 +165,13 @@ public  class BaseCSVUtil {
   /**
    * Initializes the CSV writer.
    *
-   * @param csvFileName   the filename of the CSV to which the content will be written
    * @param header        the column headers for the CSV document of the content properties to write
    * @param includeHeader Whether to render the header row
    * @param writer      the http servlet response
    * @return the CSVWriter of the response from the server
    * @throws IOException if an exception occurs initializing the CSV writer
    */
-  protected CSVWriter initializeCSVWriter(String csvFileName, String[] header, boolean includeHeader, PrintWriter writer) throws IOException {
+  protected CSVWriter initializeCSVWriter(String[] header, boolean includeHeader, PrintWriter writer) throws IOException {
 
     CSVWriter csvWriter = new CSVWriter(writer);
     if (includeHeader)
@@ -201,20 +199,17 @@ public  class BaseCSVUtil {
    * @param csvWriter   the writer which writes content to a CSV
    * @param contentList the list of the content which will be written to the CSV
    * @param header      the CSV column headers which will contain the data members of the content written
-   * @param request     the HTTP servlet request sent to the handler
-   * @param writer    the HTTP servlet response sent back to the client
    * @throws IOException if an error occurs writing out the CSV data members
    */
   protected void writeCSV(CSVWriter csvWriter, List<Content> contentList, String[] header,
-                          Map<String, String> propertiesMap, HttpServletRequest request,
-                          PrintWriter writer) throws IOException {
+                          Map<String, String> propertiesMap) throws IOException {
 
     // Prefetch content based on batch size
     Collection<Content> prefetchContentList = contentRepository.withPrefetch(contentList, contentBatchPrefetchSize);
     // Write out every content as a single record in the CSV
     for (Content content : prefetchContentList) {
       try {
-        writeCSVRecord(csvWriter, content, header, propertiesMap, request, writer);
+        writeCSVRecord(csvWriter, content, header, propertiesMap);
       } catch (Exception e) {
         LOG.warn("An exception occurred while writing the CSVRecord for " + content, e);
       }
@@ -230,15 +225,12 @@ public  class BaseCSVUtil {
    * @param content   the content from which to generate the CSV record
    * @param header    the CSV column headers which determine which members of the content are parsed and written to the
    *                  CSV file
-   * @param request   the HTTP request sent to the handler - used for generating links from the content
-   * @param writer  the HTTP response sent back from the handler - used for generating links from the content
    * @throws IOException if an exception occurs while writing the CSV record
    */
   protected void writeCSVRecord(CSVWriter csvWriter, Content content, String[] header,
-                                Map<String, String> propertiesMap, HttpServletRequest request,
-                                PrintWriter writer) throws IOException {
+                                Map<String, String> propertiesMap) throws IOException {
     // Generate the record
-    Map<String, String> csvRecord = generateCSVRecord(content, header, propertiesMap, request, writer);
+    Map<String, String> csvRecord = generateCSVRecord(content, header, propertiesMap);
 
     // Write the record to the content
     csvWriter.write(csvRecord, header);
@@ -250,20 +242,17 @@ public  class BaseCSVUtil {
    * @param content  the content from which the CSV record will be generated
    * @param header   the CSV column headers which determine which members of the content are parsed and written to the
    *                 CSV record
-   * @param request  the HTTP request sent to the handler - used for generating links from the content
-   * @param writer the HTTP response sent back from the handler - used for generating links from the content
    * @return a map with the keys representing the column headers, and the values representing the data from the
    * content pertaining to their respective header
    */
-  protected Map<String, String> generateCSVRecord(Content content, String[] header, Map<String, String> propertiesMap,
-                                                  HttpServletRequest request, PrintWriter writer) {
+  protected Map<String, String> generateCSVRecord(Content content, String[] header, Map<String, String> propertiesMap) {
     // Create the map
     List<String> headerList = Arrays.asList(header);
     Map<String, String> csvRecord = new HashMap<>();
 
     try {
       // Add static (Metadata) properties
-      populateContentMetadataFields(csvRecord, content, headerList, request);
+      populateContentMetadataFields(csvRecord, content, headerList);
 
       // Add dynamic (Content) properties
       populateContentPropertyFields(csvRecord, content, headerList, propertiesMap);
@@ -287,10 +276,9 @@ public  class BaseCSVUtil {
    * @param content    the content from which the metadata will be requested and set into the CSV record
    * @param headerList the list of headers which determines which metadata is added to the CSV record and which
    *                   columns will be present in the CSV
-   * @param request    the HTTP request sent to the handler - used for generating links from the content
    */
   protected void populateContentMetadataFields(Map<String, String> csvRecord, Content content,
-                                               List<String> headerList, HttpServletRequest request) {
+                                               List<String> headerList) {
     String metadataProperty;
     if (headerList.contains(COLUMN_ID)) {
       metadataProperty = getContentIdString(content);

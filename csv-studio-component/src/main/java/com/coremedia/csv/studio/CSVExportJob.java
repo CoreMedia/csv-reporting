@@ -5,6 +5,7 @@ import com.coremedia.cap.common.BlobService;
 import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.user.User;
+import com.coremedia.csv.studio.utils.BaseCSVUtil;
 import com.coremedia.rest.cap.content.search.SearchServiceResult;
 import com.coremedia.rest.cap.jobs.Job;
 import com.coremedia.rest.cap.jobs.JobContext;
@@ -19,8 +20,11 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.activation.MimeTypeParseException;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.*;
 
 import static java.lang.invoke.MethodHandles.lookup;
@@ -50,15 +54,18 @@ public class CSVExportJob implements Job {
   private List<String> facetQueries;
   private String searchHandler;
   private String template;
+  private final BaseCSVUtil baseCSVUtil;
 
   public CSVExportJob(CSVExportAuthorization csvExportAuthorization,
                       CSVExportSearchService csvExportSearchService,
                       CSVFileRetriever csvFileRetriever,
-                      ContentRepository contentRepository) {
+                      ContentRepository contentRepository,
+                      BaseCSVUtil baseCSVUtil) {
     this.csvExportAuthorization = csvExportAuthorization;
     this.csvExportSearchService = csvExportSearchService;
     this.csvFileRetriever = csvFileRetriever;
     this.contentRepository = contentRepository;
+    this.baseCSVUtil = baseCSVUtil;
   }
 
   @Nullable
@@ -104,9 +111,11 @@ public class CSVExportJob implements Job {
   }
 
   private Content processResult(SearchServiceResult result, JobContext jobContext) throws IOException, MimeTypeParseException {
-    InputStream is = csvFileRetriever.getInputStream(template, result.getHits(), jobContext);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintWriter writer = new PrintWriter(baos);
+    baseCSVUtil.generateCSV(result.getHits().toArray(new Content[0]), template, true, writer);
     BlobService blobService = contentRepository.getConnection().getBlobService();
-    Blob data = blobService.fromInputStream(is, "text/csv");
+    Blob data = blobService.fromBytes(baos.toByteArray(), "text/csv");
     // create CMDownload with data
     User user = csvExportAuthorization.getCurrentUser();
     Content homeFolder = user.getHomeFolder();
