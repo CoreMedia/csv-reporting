@@ -139,56 +139,49 @@ public class CSVParserHelper {
             // Want to check if the content this record refers to even exists
             Content content = fetchContentFromRecord(record, contentRepository);
             if (content != null) {
+                  checkPublishImportedContent();
+                  logger.info("Started parsing CSV for content with ID " + content.getId());
 
-                // Next we need to verify that the content types are the same. If they aren't, then we want to skip.
-                // We do not want the users to think they can update the type in the CSV and have the content
-                // magically change types. This needs to be logged and skipped - because properties change between
-                // different types of content
-                if (verifyContentType(content, record)) {
+                  // Currently we have 1. the Map of the CSV record containing the A) column headers and B) values
+                  // of the properties to upload and 2. the Map of A) CSV headers to B) property keys. So we need
+                  // to match the values from the columns headers to their respective property keys.
+                  Map<String, String> recordStringProperties = generateRecordPropertiesMap(
+                          reportHeadersToContentProperties, record.toMap());
 
-                    checkPublishImportedContent();
-                    logger.info("Started parsing CSV for content with ID " + content.getId());
+                  // This map is the final properties that are to be uploaded to the content
+                  Map<String, Object> recordObjectProperties = new HashedMap();
 
-                    // Currently we have 1. the Map of the CSV record containing the A) column headers and B) values
-                    // of the properties to upload and 2. the Map of A) CSV headers to B) property keys. So we need
-                    // to match the values from the columns headers to their respective property keys.
-                    Map<String, String> recordStringProperties = generateRecordPropertiesMap(
-                            reportHeadersToContentProperties, record.toMap());
+                  // This is the map of tags. Currently this map will only contain Subject taxonomies, but if this
+                  // changes we will want to add more keys to this map
+                  Map<String, Set<Content>> tagsMap = new HashMap<>();
 
-                    // This map is the final properties that are to be uploaded to the content
-                    Map<String, Object> recordObjectProperties = new HashedMap();
+                  int id = IdHelper.parseContentId(content.getId());
 
-                    // This is the map of tags. Currently this map will only contain Subject taxonomies, but if this
-                    // changes we will want to add more keys to this map
-                    Map<String, Set<Content>> tagsMap = new HashMap<>();
+                  // Some content object do not have local settings, so we must account for this as getStruct will
+                  // throw an exception if this is the case and fail the import
+                  if (!content.getType().isSubtypeOf("CMLinkable")) {
+                      hasLocalSettings = false;
+                      logger.debug("Content with id {} does not have a local settings.", id);
+                  }
 
-                    int id = IdHelper.parseContentId(content.getId());
+                  if (success) {
+                      // Converts all String properties to their respective objects
+                      success = convertStringProperties(content, recordStringProperties, recordObjectProperties,
+                              tagsMap);
+                  }
 
-                    // Some content object do not have local settings, so we must account for this as getStruct will
-                    // throw an exception if this is the case and fail the import
-                    if (!content.getType().isSubtypeOf("CMLinkable")) {
-                        hasLocalSettings = false;
-                        logger.debug("Content with id {} does not have a local settings.", id);
-                    }
+                  if (success) {
+                      updateTaxonomies(content, recordObjectProperties, parser, tagsMap);
+                      success = setObjectPropertiesInContent(content, recordObjectProperties);
 
-                    if (success) {
-                        // Converts all String properties to their respective objects
-                        success = convertStringProperties(content, recordStringProperties, recordObjectProperties,
-                                tagsMap);
-                    }
-
-                    if (success) {
-                        updateTaxonomies(content, recordObjectProperties, parser, tagsMap);
-                        success = setObjectPropertiesInContent(content, recordObjectProperties);
-
-                        if (success && !recordObjectProperties.isEmpty()) {
-                          if(firstContent == null) {
-                            firstContent = content;
-                          }
-                            contentImported++;
+                      if (success && !recordObjectProperties.isEmpty()) {
+                        if(firstContent == null) {
+                          firstContent = content;
                         }
-                    }
-                }
+                          contentImported++;
+                      }
+                  }
+
             }
         }
         performFinalImport();

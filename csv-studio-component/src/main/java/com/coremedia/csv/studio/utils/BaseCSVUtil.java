@@ -289,7 +289,7 @@ public  class BaseCSVUtil {
       csvRecord.put(COLUMN_PATH, content.getPath());
     }
     if (headerList.contains(COLUMN_SITE_PATH)) {
-      csvRecord.put(COLUMN_PATH, getSitePath(content.getPath()));
+      csvRecord.put(COLUMN_SITE_PATH, getSitePath(content.getPath()));
     }
     if (headerList.contains(COLUMN_TYPE)) {
       metadataProperty = content.getType().getName();

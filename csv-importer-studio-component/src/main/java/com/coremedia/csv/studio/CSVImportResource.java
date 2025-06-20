@@ -108,7 +108,7 @@ public class CSVImportResource {
     boolean autoPublish = false;
     String template = file.getOriginalFilename().substring(0, file.getOriginalFilename().indexOf('_'));
     BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
-    CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withHeader());
+    CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withHeader().withDelimiter(';'));
     CSVParserHelper handler = new CSVParserHelper(autoPublish, contentRepository, logger);
     handler.parseCSV(parser, csvConfig.getReportHeadersToContentProperties(template));
 
