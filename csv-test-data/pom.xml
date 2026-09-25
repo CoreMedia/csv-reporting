@@ -26,7 +26,7 @@
         <executions>
           <execution>
             <id>csv-copy-content-resources</id>
-            <phase>process-resources</phase>
+            <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -41,7 +41,7 @@
           </execution>
           <execution>
             <id>csv-copy-users-resources</id>
-            <phase>process-resources</phase>
+            <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>

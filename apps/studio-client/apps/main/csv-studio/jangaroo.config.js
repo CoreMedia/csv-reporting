@@ -18,9 +18,4 @@ module.exports = jangarooConfig({
       },
     ],
   },
-  command: {
-    build: {
-      ignoreTypeErrors: true,
-    },
-  },
 });

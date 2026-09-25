@@ -2,8 +2,7 @@ import Config from "@jangaroo/runtime/Config";
 import ConfigUtils from "@jangaroo/runtime/ConfigUtils";
 import CSVImportDialogBase from "./CSVImportDialogBase";
 
-interface CSVImportDialogConfig extends Config<CSVImportDialogBase> {
-}
+interface CSVImportDialogConfig extends Config<CSVImportDialogBase> {}
 
 class CSVImportDialog extends CSVImportDialogBase {
   declare Config: CSVImportDialogConfig;
@@ -13,8 +12,7 @@ class CSVImportDialog extends CSVImportDialogBase {
   static override readonly ID: string = "csvImportDialog";
 
   constructor(config: Config<CSVImportDialog> = null) {
-    super(ConfigUtils.apply(Config(CSVImportDialog, {
-    }), config));
+    super(ConfigUtils.apply(Config(CSVImportDialog, {}), config));
   }
 }
 

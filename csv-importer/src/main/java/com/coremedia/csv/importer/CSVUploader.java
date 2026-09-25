@@ -1,6 +1,7 @@
 package com.coremedia.csv.importer;
 
 import com.coremedia.cap.Cap;
+import com.coremedia.csv.common.CSVConstants;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.user.Group;
 import com.coremedia.cap.user.User;
@@ -13,15 +14,15 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.*;
+import java.util.Map;
 import java.util.List;
 import java.util.Map;
 
 /**
- * This client moves content located in one directory into another
+ * Command-line client for importing content from a CSV file.
  */
 public class CSVUploader extends AbstractSpringAwareUAPIClient {
 
@@ -92,12 +93,12 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
     /**
      * A relational map consisting of the names of the CSV headers and their corresponding content property names.
      */
-    private Map<String, String> reportHeadersToContentProperties;
+    private final Map<String, String> reportHeadersToContentProperties;
 
     /**
      * Logger for this class.
      */
-    private Logger logger;
+    private final Logger logger;
 
     /**
      * The handler class which will parse the CSV and import the data into the respective content.
@@ -107,19 +108,59 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
   /**
    * Flag indicating whether access to this endpoint should be restricted to authorized groups only
    */
-  private Boolean restrictToAuthorizedGroups;
+  private final boolean restrictToAuthorizedGroups;
 
   /**
    * The Authorized Uer Groups which are allowed to conduct an import.
    */
-  private List<String> authorizedGroups;
+  private final List<String> authorizedGroups;
 
     /**
-     * Constructor.
+     * Creates the uploader with the default CSV property mapping and authorization group.
      */
     public CSVUploader() {
-        sourceCSV = null;
+        this(createReportHeadersToContentProperties(), true, List.of("importer"));
+    }
+
+    /**
+     * Creates the uploader with explicit CSV mapping and authorization settings.
+     *
+     * @param reportHeadersToContentProperties mapping from CSV headers to content properties
+     * @param restrictToAuthorizedGroups whether importing is limited to the configured groups
+     * @param authorizedGroups groups allowed to perform imports
+     */
+    public CSVUploader(Map<String, String> reportHeadersToContentProperties,
+                       boolean restrictToAuthorizedGroups,
+                       List<String> authorizedGroups) {
+        this.reportHeadersToContentProperties = Map.copyOf(reportHeadersToContentProperties);
+        this.restrictToAuthorizedGroups = restrictToAuthorizedGroups;
+        this.authorizedGroups = List.copyOf(authorizedGroups);
         logger = LoggerFactory.getLogger(CSVUploader.class);
+    }
+
+    private static Map<String, String> createReportHeadersToContentProperties() {
+      return Map.ofEntries(
+              Map.entry(CSVConstants.COLUMN_TITLE, CSVConstants.PROPERTY_TITLE),
+              Map.entry(CSVConstants.COLUMN_KEYWORDS, CSVConstants.PROPERTY_KEYWORDS),
+              Map.entry(CSVConstants.COLUMN_TEASER_TITLE, CSVConstants.PROPERTY_TEASER_TITLE),
+              Map.entry(CSVConstants.COLUMN_TEASER_TEXT, CSVConstants.PROPERTY_TEASER_TEXT),
+              Map.entry(CSVConstants.COLUMN_URL_SEGMENT, CSVConstants.PROPERTY_URL_SEGMENT),
+              Map.entry(CSVConstants.COLUMN_HTML_TITLE, CSVConstants.PROPERTY_HTML_TITLE),
+              Map.entry(CSVConstants.COLUMN_HTML_DESCRIPTION, CSVConstants.PROPERTY_HTML_DESCRIPTION),
+              Map.entry(CSVConstants.COLUMN_SUBJECT_TAGS, CSVConstants.PROPERTY_SUBJECT_TAGS),
+              Map.entry(CSVConstants.COLUMN_EXTERNALLY_DISPLAYED_DATE, CSVConstants.PROPERTY_EXTERNALLY_DISPLAYED_DATE),
+              Map.entry(CSVConstants.COLUMN_EXTERNALLY_ASSOCIATED_THEME, CSVConstants.PROPERTY_EXTERNALLY_ASSOCIATED_THEME),
+              Map.entry(CSVConstants.COLUMN_EXTERNALLY_ASSOCIATED_JAVASCRIPT, CSVConstants.PROPERTY_EXTERNALLY_ASSOCIATED_JAVASCRIPT),
+              Map.entry(CSVConstants.COLUMN_EXTERNALLY_ASSOCIATED_CSS, CSVConstants.PROPERTY_EXTERNALLY_ASSOCIATED_CSS),
+              Map.entry(CSVConstants.COLUMN_LINKED_SETTINGS, CSVConstants.PROPERTY_LINKED_SETTINGS),
+              Map.entry(CSVConstants.COLUMN_LOCALE, CSVConstants.PROPERTY_LOCALE),
+              Map.entry(CSVConstants.COLUMN_PICTURE_TITLE, CSVConstants.PROPERTY_PICTURE_TITLE),
+              Map.entry(CSVConstants.COLUMN_PICTURE_CAPTION, CSVConstants.PROPERTY_PICTURE_CAPTION),
+              Map.entry(CSVConstants.COLUMN_ALTERNATIVE_TEXT, CSVConstants.PROPERTY_ALTERNATIVE_TEXT),
+              Map.entry(CSVConstants.COLUMN_EXTERNAL_LINK_TARGET_URL, CSVConstants.PROPERTY_EXTERNAL_LINK_TARGET_URL),
+              Map.entry(CSVConstants.COLUMN_DATA_URL, CSVConstants.PROPERTY_DATA_URL),
+              Map.entry(CSVConstants.COLUMN_EXTERNAL_ID, CSVConstants.PROPERTY_EXTERNAL_ID)
+      );
     }
 
     /**
@@ -165,12 +206,6 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected String getApplicationContextPath() {
-        return "classpath:/META-INF/coremedia/csv-uploader.xml";
-    }
-
-
     /**
      * {@inheritDoc}
      */
@@ -207,17 +242,11 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
     @Override
     protected void run() {
 
-      restrictToAuthorizedGroups = getApplicationContext().getBean("restrictToAuthorizedGroups", Boolean.class);
-      authorizedGroups = getApplicationContext().getBean("authorizedGroups", List.class);
-
       // Check that the user is a member of the requisite group
       if(restrictToAuthorizedGroups && !isAuthorized()) {
         getLogger().error(USER_NOT_AUTHORIZED);
       }
       else {
-        reportHeadersToContentProperties = getApplicationContext().getBean("reportHeadersToContentProperties",
-                Map.class);
-
         // Verify that the source CSV file is a CSV
         File csvFile = new File(sourceCSV);
         if (!csvFile.exists()) {
@@ -263,9 +292,6 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
   }
 
     public void runFromRequest(InputStream fileInputStream) {
-      reportHeadersToContentProperties = getApplicationContext().getBean("reportHeadersToContentProperties",
-              Map.class);
-
       try {
         // Pass the CSV to the CSVParser
         CSVParser parser = new CSVParser(new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8")),
@@ -277,34 +303,6 @@ public class CSVUploader extends AbstractSpringAwareUAPIClient {
       } catch (IOException e) {
         getLogger().error(String.format(ERROR_PARSING_CSV, e.getMessage(), e));
       }
-  }
-
-    /**
-     * Sets the report headers to content properties map.
-     *
-     * @param reportHeadersToContentProperties the map to set as the report headers to content properties map
-     */
-    @Required
-    public void setReportHeadersToContentProperties(Map<String, String> reportHeadersToContentProperties) {
-        this.reportHeadersToContentProperties = reportHeadersToContentProperties;
-    }
-
-  /**
-   * Sets the authorized groups.
-   *
-   * @param authorizedGroups the authorized groups to set
-   */
-  public void setAuthorizedGroups(List<String> authorizedGroups) {
-    this.authorizedGroups = authorizedGroups;
-  }
-
-  /**
-   * Set the flag indicating whether access to this endpoint should be restricted to authorized groups only.
-   *
-   * @param restrictToAuthorizedGroups the value to set
-   */
-  public void setRestrictToAuthorizedGroups(boolean restrictToAuthorizedGroups) {
-    this.restrictToAuthorizedGroups = restrictToAuthorizedGroups;
   }
 
     /**

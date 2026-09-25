@@ -17,8 +17,7 @@ import int from "@jangaroo/runtime/int";
 import ConfigUtils from "@jangaroo/runtime/ConfigUtils";
 import UploadSettingsService from "@coremedia/studio-client.main.editor-components/sdk/upload/UploadSettingsService";
 
-interface CSVImportDialogBaseConfig extends Config<UploadDialog> {
-}
+interface CSVImportDialogBaseConfig extends Config<UploadDialog> {}
 
 class CSVImportDialogBase extends UploadDialog {
   declare Config: CSVImportDialogBaseConfig;
@@ -30,9 +29,14 @@ class CSVImportDialogBase extends UploadDialog {
   #uploadDropAreaDisabled: boolean = false;
 
   constructor(config: Config<CSVImportDialogBase> = null) {
-    super(ConfigUtils.apply(Config(CSVImportDialogBase, {
-      settings: UploadSettingsService.getInstance().getUploadSettings()
-    }), config));
+    super(
+      ConfigUtils.apply(
+        Config(CSVImportDialogBase, {
+          settings: UploadSettingsService.getInstance().getUploadSettings(),
+        }),
+        config,
+      ),
+    );
   }
 
   /**
@@ -78,7 +82,8 @@ class CSVImportDialogBase extends UploadDialog {
         closable: false,
         width: 300,
       });
-      EventUtil.invokeLater((): void => {//otherwise the progress bar does not appear :(
+      EventUtil.invokeLater((): void => {
+        //otherwise the progress bar does not appear :(
         for (let i = 0; i < files.length; i++) {
           const fc = Config(FileContainer);
           fc.file = files[i];
@@ -132,8 +137,8 @@ class CSVImportDialogBase extends UploadDialog {
     const fileWrappers = this.#fileContainers.getFiles();
     const url = RemoteService.calculateRequestURI("importcsv/uploadfile");
     fileWrappers.forEach((fileWrapper: FileWrapper): void =>
-    //fileWrapper.setCustomUploadUrl('importcsv/uploadfile');
-    //fileWrapper.upload(settings, null, onSuccess, uploadError, progress);
+      //fileWrapper.setCustomUploadUrl('importcsv/uploadfile');
+      //fileWrapper.upload(settings, null, onSuccess, uploadError, progress);
 
       //upload(url, settings, null, onSuccess, uploadError, progress);
       this.html5upload(url, fileWrapper.getFile()),
@@ -148,8 +153,7 @@ class CSVImportDialogBase extends UploadDialog {
   }
 
   protected uploadError(response: XMLHttpRequest): void {
-    const result = RemoteService.createRemoteError(response.responseText, "POST", response.status,
-      response.statusText);
+    const result = RemoteService.createRemoteError(response.responseText, "POST", response.status, response.statusText);
     const message = result.message;
     MessageBoxUtil.showError("Import Status", "Import failed: " + message);
   }
@@ -173,7 +177,7 @@ class CSVImportDialogBase extends UploadDialog {
 
     uploadRequest.open("POST", url, true);
 
-    uploadRequest["onload"] = ((e: any): void => this.#uploadCallback(uploadRequest));
+    uploadRequest["onload"] = (e: any): void => this.#uploadCallback(uploadRequest);
 
     // TODO[rre]: if we could use Ajax.request here instead of XMLHttpRequest, the header would come for free
     uploadRequest.setRequestHeader(RemoteService.getCsrfTokenHeaderName(), RemoteService.getCsrfTokenValue());

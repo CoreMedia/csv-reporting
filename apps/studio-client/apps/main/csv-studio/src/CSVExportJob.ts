@@ -2,21 +2,18 @@ import RemoteJobBase from "@coremedia/studio-client.cap-rest-client-impl/common/
 import JobContext from "@coremedia/studio-client.cap-rest-client/common/JobContext";
 import ValueExpression from "@coremedia/studio-client.client-core/data/ValueExpression";
 import ValueExpressionFactory from "@coremedia/studio-client.client-core/data/ValueExpressionFactory";
-import BackgroundJob from "@coremedia/studio-client.main.editor-components/sdk/jobs/BackgroundJob";
+import BackgroundJob from "@coremedia/studio-client.job-models/BackgroundJob";
 import TrackedJob from "@coremedia/studio-client.cap-rest-client/common/TrackedJob";
-import {AnyFunction} from "@jangaroo/runtime/types";
-import {mixin} from "@jangaroo/runtime";
-import ShowInRepositoryAction
-  from "@coremedia/studio-client.ext.library-services-toolkit/actions/ShowInRepositoryAction";
+import { AnyFunction } from "@jangaroo/runtime/types";
+import { mixin } from "@jangaroo/runtime";
+import ShowInRepositoryAction from "@coremedia/studio-client.ext.library-services-toolkit/actions/ShowInRepositoryAction";
 import Config from "@jangaroo/runtime/Config";
 
 class CSVExportJob extends RemoteJobBase implements BackgroundJob {
-
   static readonly #JOB_TYPE_CSV_REPORTER_EXPORT: string = "csvReporterExport";
 
   #params: any;
   #name: string;
-  #ctx: JobContext = null;
   // workaround for CMS-24848
   #startedTrackedJob: TrackedJob = null;
 
@@ -28,7 +25,6 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   }
 
   override execute(jobContext: JobContext): void {
-    this.#ctx = jobContext;
     super.execute(jobContext);
   }
 
@@ -53,8 +49,8 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   }
 
   generateName(): string {
-    let baseName: string = "CSV Export";
-    let time: string = new Date().toLocaleString();
+    const baseName: string = "CSV Export";
+    const time: string = new Date().toLocaleString();
     return `${baseName} ${time}`;
   }
 
@@ -70,7 +66,9 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   getSuccessHandler(): AnyFunction {
     return (): void => {
       const result: any = this.startedTrackedJob.getResult();
-      const showInRepositoryAction = new ShowInRepositoryAction(Config(ShowInRepositoryAction, {contentValueExpression: ValueExpressionFactory.createFromValue(result)}));
+      const showInRepositoryAction = new ShowInRepositoryAction(
+        Config(ShowInRepositoryAction, { contentValueExpression: ValueExpressionFactory.createFromValue(result) }),
+      );
       showInRepositoryAction.execute();
     };
   }
@@ -82,7 +80,6 @@ class CSVExportJob extends RemoteJobBase implements BackgroundJob {
   set startedTrackedJob(value: TrackedJob) {
     this.#startedTrackedJob = value;
   }
-
 }
 
 mixin(CSVExportJob, BackgroundJob);

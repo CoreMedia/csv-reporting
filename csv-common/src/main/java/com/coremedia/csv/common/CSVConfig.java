@@ -3,8 +3,6 @@ package com.coremedia.csv.common;
 import com.coremedia.cap.content.Content;
 import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.cap.struct.Struct;
-import org.springframework.beans.factory.annotation.Required;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,17 +38,29 @@ public class CSVConfig {
   /**
    * The content repository from which to retrieve content.
    */
-  private ContentRepository contentRepository;
+  private final ContentRepository contentRepository;
 
   /**
    * The path to the reporting settings document
    */
-  private String settingsPath;
+  private final String settingsPath;
+
+  /**
+   * Creates CSV configuration backed by the reporting settings document.
+   *
+   * @param contentRepository repository used to load the settings document
+   * @param settingsPath path to the reporting settings document
+   */
+  public CSVConfig(ContentRepository contentRepository, String settingsPath) {
+    this.contentRepository = contentRepository;
+    this.settingsPath = settingsPath;
+  }
 
   /**
    * Get the header columns in the CSV. Used by the CSV writer to determine which properties of beans are needed when
    * writing.
    *
+   * @param templateName name of the reporting template
    * @return the header columns in the CSV
    */
   public String[] getCSVHeaders(String templateName) {
@@ -65,6 +75,7 @@ public class CSVConfig {
   /**
    * Get a relational map consisting of the names of the CSV headers and their corresponding content property names.
    *
+   * @param templateName name of the reporting template
    * @return a map of CSV headers and their corresponding content property names
    */
   public Map<String, String> getReportHeadersToContentProperties(String templateName) {
@@ -94,23 +105,4 @@ public class CSVConfig {
     return templates.getStruct(templateName);
   }
 
-  /**
-   * Sets the content repository.
-   *
-   * @param contentRepository the content repository to set
-   */
-  @Required
-  public void setContentRepository(ContentRepository contentRepository) {
-    this.contentRepository = contentRepository;
-  }
-
-  /**
-   * Sets the settings path.
-   *
-   * @param settingsPath the settings path to set
-   */
-  @Required
-  public void setSettingsPath(String settingsPath) {
-    this.settingsPath = settingsPath;
-  }
 }

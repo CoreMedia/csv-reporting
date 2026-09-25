@@ -4,21 +4,21 @@ import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.rest.cap.CapRestServiceBaseConfiguration;
 import com.coremedia.rest.cap.CapRestServiceSearchConfiguration;
 import com.coremedia.rest.cap.config.StudioConfigurationProperties;
-import com.coremedia.rest.cap.content.search.CapObjectFormat;
+import com.coremedia.rest.cap.content.CapObjectFormat;
 import com.coremedia.rest.cap.content.search.SearchService;
 import com.coremedia.rest.linking.LinkResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
 
 import static java.lang.invoke.MethodHandles.lookup;
 
-@Configuration
+@AutoConfiguration
 @Import({
         CapRestServiceBaseConfiguration.class,
         CapRestServiceSearchConfiguration.class
@@ -27,7 +27,7 @@ import static java.lang.invoke.MethodHandles.lookup;
         CSVConfigurationProperties.class,
         StudioConfigurationProperties.class
 })
-class CSVConfiguration {
+public class CSVConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(lookup().lookupClass());
 
   @Bean

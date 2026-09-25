@@ -14,7 +14,7 @@
 
   <properties>
     <coremedia.project.extension.for>preview-cae</coremedia.project.extension.for>
-    <commons.csv.version>1.10.0</commons.csv.version>
+    <commons.csv.version>1.14.1</commons.csv.version>
   </properties>
 
   <dependencies>
@@ -31,6 +31,14 @@
     <dependency>
       <groupId>com.coremedia.blueprint.base</groupId>
       <artifactId>bpbase-settings-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.coremedia.blueprint.base</groupId>
+      <artifactId>bpbase-settings-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.coremedia.blueprint.base</groupId>
+      <artifactId>bpbase-links-impl</artifactId>
     </dependency>
     <dependency>
       <groupId>com.coremedia.cms</groupId>
@@ -71,8 +79,12 @@
       <artifactId>spring-web</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-beans</artifactId>
+      <artifactId>spring-context</artifactId>
     </dependency>
   </dependencies>
 

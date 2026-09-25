@@ -4,8 +4,7 @@ import Config from "@jangaroo/runtime/Config";
 import ConfigUtils from "@jangaroo/runtime/ConfigUtils";
 import CSVExportLibraryPlugin from "./CSVExportLibraryPlugin";
 
-interface CSVExportStudioPluginConfig extends Config<StudioPlugin> {
-}
+interface CSVExportStudioPluginConfig extends Config<StudioPlugin> {}
 
 class CSVExportStudioPlugin extends StudioPlugin {
   declare Config: CSVExportStudioPluginConfig;
@@ -15,17 +14,18 @@ class CSVExportStudioPlugin extends StudioPlugin {
   static readonly xtype: string = "com.coremedia.csv.studio.config.csvExportStudioPlugin";
 
   constructor(config: Config<CSVExportStudioPlugin> = null) {
-    super(ConfigUtils.apply(Config(CSVExportStudioPlugin, {
-
-      rules: [
-        Config(CollectionView, {
-          plugins: [
-            Config(CSVExportLibraryPlugin),
+    super(
+      ConfigUtils.apply(
+        Config(CSVExportStudioPlugin, {
+          rules: [
+            Config(CollectionView, {
+              plugins: [Config(CSVExportLibraryPlugin)],
+            }),
           ],
         }),
-      ],
-
-    }), config));
+        config,
+      ),
+    );
   }
 }
 

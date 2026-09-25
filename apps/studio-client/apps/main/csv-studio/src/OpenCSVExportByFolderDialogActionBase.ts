@@ -9,8 +9,7 @@ import CSVExportDialog from "./CSVExportDialog";
 import CSVExportStudioPlugin_properties from "./CSVExportStudioPlugin_properties";
 import OpenCSVExportByFolderDialogAction from "./OpenCSVExportByFolderDialogAction";
 
-interface OpenCSVExportByFolderDialogActionBaseConfig extends Config<ContentAction> {
-}
+interface OpenCSVExportByFolderDialogActionBaseConfig extends Config<ContentAction> {}
 
 class OpenCSVExportByFolderDialogActionBase extends ContentAction {
   declare Config: OpenCSVExportByFolderDialogActionBaseConfig;
@@ -50,9 +49,12 @@ class OpenCSVExportByFolderDialogActionBase extends ContentAction {
   }
 
   #createExportByFolderDialog(content: Content): void {
-    const message: string = (content.getName() && content.getName().length > 1) ?
-      resourceManager.getString(CSVExportStudioPlugin_properties, "exportDialog_exportFolder_text", [content.getName()]) :
-      CSVExportStudioPlugin_properties.exportDialog_exportRootFolder_text;
+    const message: string =
+      content.getName() && content.getName().length > 1
+        ? resourceManager.getString(CSVExportStudioPlugin_properties, "exportDialog_exportFolder_text", [
+            content.getName(),
+          ])
+        : CSVExportStudioPlugin_properties.exportDialog_exportRootFolder_text;
 
     ValueExpressionFactory.create(ContentPropertyNames.PATH, content).loadValue((): void => {
       const dialog = new CSVExportDialog(Config(CSVExportDialog, { confirmationMessage: message }));

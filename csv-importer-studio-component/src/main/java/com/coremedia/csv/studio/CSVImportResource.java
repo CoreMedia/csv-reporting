@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +20,13 @@ import org.apache.commons.csv.CSVParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
 /**
- * Handles Studio API requests for a CSV based on search parameters.
+ * Handles Studio API requests to import content from a CSV file.
  */
 @RequestMapping
 @RestController
@@ -35,69 +35,51 @@ public class CSVImportResource {
   /**
    * The content repository from which to retrieve content.
    */
-  private ContentRepository contentRepository;
+  private final ContentRepository contentRepository;
 
   /**
    * Configuration mapping CSV headers to content properties
    */
-  private CSVConfig csvConfig;
+  private final CSVConfig csvConfig;
 
   /**
    * Flag indicating whether access to this endpoint should be restricted to authorized groups only
    */
-  private boolean restrictToAuthorizedGroups;
+  private final boolean restrictToAuthorizedGroups;
 
   /**
    * The groups that are authorized to access this endpoint.
    */
-  private List<String> authorizedGroups;
+  private final List<String> authorizedGroups;
 
   /**
    * Import process logger.
    */
-  private static Logger logger = LoggerFactory.getLogger(CSVImportResource.class);
+  private static final Logger logger = LoggerFactory.getLogger(CSVImportResource.class);
 
   /**
-   * Sets the content repository.
+   * Creates the CSV import resource with its repository, mapping, and authorization configuration.
    *
-   * @param contentRepository the content repository to set
+   * @param contentRepository repository used to update content
+   * @param csvConfig configuration mapping CSV headers to content properties
+   * @param restrictToAuthorizedGroups whether access is restricted to authorized groups
+   * @param authorizedGroups groups allowed to access the import endpoint
    */
-  public void setContentRepository(ContentRepository contentRepository) {
+  public CSVImportResource(ContentRepository contentRepository,
+                           CSVConfig csvConfig,
+                           boolean restrictToAuthorizedGroups,
+                           List<String> authorizedGroups) {
     this.contentRepository = contentRepository;
-  }
-
-  /**
-   * Sets the CSV configuration
-   *
-   * @param csvConfig the csv configuration to set
-   */
-  public void setCsvConfig(CSVConfig csvConfig) {
     this.csvConfig = csvConfig;
-  }
-
-  /**
-   * Set the flag indicating whether access to this endpoint should be restricted to authorized groups only.
-   *
-   * @param restrictToAuthorizedGroups the value to set
-   */
-  public void setRestrictToAuthorizedGroups(boolean restrictToAuthorizedGroups) {
     this.restrictToAuthorizedGroups = restrictToAuthorizedGroups;
-  }
-
-  /**
-   * Sets the authorized groups.
-   *
-   * @param authorizedGroups the authorized groups to set
-   */
-  public void setAuthorizedGroups(List<String> authorizedGroups) {
-    this.authorizedGroups = authorizedGroups;
+    this.authorizedGroups = List.copyOf(authorizedGroups);
   }
 
   @PostMapping(value = "importcsv/uploadfile",
           produces = "text/json",
           consumes = "multipart/form-data")
-  public ResponseEntity importCSV(@HeaderParam("site") String siteId,
-                                  @HeaderParam("folderUri") String folderUri,
+  public ResponseEntity importCSV(@RequestHeader(value = "site", required = false) String siteId,
+                                  @RequestHeader(value = "folderUri", required = false) String folderUri,
                                   @RequestParam("file") MultipartFile file) throws IOException {
 
     // Check that the user is a member of the requisite group
