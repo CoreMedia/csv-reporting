@@ -18,10 +18,9 @@ import com.coremedia.objectserver.web.links.LinkFormatter;
 import com.coremedia.xml.Markup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -79,41 +78,68 @@ public abstract class BaseCSVUtil {
    */
   private static final SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
 
-  /* ------- Spring-configured values ------- */
+  /* ------- Configuration values ------- */
   /**
    * The content repository from which to retrieve content.
    */
-  protected ContentRepository contentRepository;
+  protected final ContentRepository contentRepository;
 
   /**
    * The content bean factory from which to create beans from requested content.
    */
-  protected ContentBeanFactory contentBeanFactory;
+  protected final ContentBeanFactory contentBeanFactory;
 
   /**
    * The settings service from which the settings values of the content beans will be retrieved.
    */
-  protected SettingsService settingsService;
+  protected final SettingsService settingsService;
 
   /**
    * The link formatter that will build the URLs for the content beans.
    */
-  protected LinkFormatter linkFormatter;
+  protected final LinkFormatter linkFormatter;
 
   /**
    * The config class which handles the settings mapping CSV headers to their corresponding content property names.
    */
-  protected CSVConfig CSVConfig;
+  protected final CSVConfig CSVConfig;
 
   /**
    * Size of batch for content.
    */
-  protected int contentBatchPrefetchSize;
+  protected final int contentBatchPrefetchSize;
 
   /**
-   * Prefix for the filename, configured via Spring.
+   * Prefix for the generated filename, supplied by the Spring configuration.
    */
-  protected String filenamePrefix;
+  protected final String filenamePrefix;
+
+  /**
+   * Creates the utility with its required services and report settings.
+   *
+   * @param contentRepository repository used to retrieve content
+   * @param contentBeanFactory factory used to create beans from content
+   * @param settingsService service used to retrieve settings values
+   * @param linkFormatter formatter used to build content URLs
+   * @param csvConfig configuration for CSV templates and mappings
+   * @param contentBatchPrefetchSize number of content items processed per batch
+   * @param filenamePrefix prefix for generated CSV filenames
+   */
+  protected BaseCSVUtil(ContentRepository contentRepository,
+                        ContentBeanFactory contentBeanFactory,
+                        SettingsService settingsService,
+                        LinkFormatter linkFormatter,
+                        CSVConfig csvConfig,
+                        int contentBatchPrefetchSize,
+                        String filenamePrefix) {
+    this.contentRepository = contentRepository;
+    this.contentBeanFactory = contentBeanFactory;
+    this.settingsService = settingsService;
+    this.linkFormatter = linkFormatter;
+    this.CSVConfig = csvConfig;
+    this.contentBatchPrefetchSize = contentBatchPrefetchSize;
+    this.filenamePrefix = filenamePrefix;
+  }
 
   /**
    * Generates a CSV file based on a list of content ids.
@@ -645,75 +671,4 @@ public abstract class BaseCSVUtil {
     csvRecord.put(COLUMN_STATUS, "fail");
   }
 
-  /* ------- Spring-configured value setters ------- */
-
-  /**
-   * Sets the settings service.
-   *
-   * @param settingsService the settings service to set
-   */
-  @Required
-  public void setSettingsService(SettingsService settingsService) {
-    this.settingsService = settingsService;
-  }
-
-  /**
-   * Sets the content bean factory.
-   *
-   * @param contentBeanFactory the content bean factory to set
-   */
-  @Required
-  public void setContentBeanFactory(ContentBeanFactory contentBeanFactory) {
-    this.contentBeanFactory = contentBeanFactory;
-  }
-
-  /**
-   * Sets the content repository.
-   *
-   * @param contentRepository the content repository to set
-   */
-  @Required
-  public void setContentRepository(ContentRepository contentRepository) {
-    this.contentRepository = contentRepository;
-  }
-
-  /**
-   * Sets the link formatter.
-   *
-   * @param linkFormatter the link formatter to set
-   */
-  @Required
-  public void setLinkFormatter(LinkFormatter linkFormatter) {
-    this.linkFormatter = linkFormatter;
-  }
-
-  /**
-   * Sets the CSV configuration handler.
-   *
-   * @param CSVConfig the CSVConfig to set
-   */
-  @Required
-  public void setCSVConfig(CSVConfig CSVConfig) {
-    this.CSVConfig = CSVConfig;
-  }
-
-  /**
-   * Sets the file name prefix for generated files.
-   *
-   * @param filenamePrefix the file name prefix for generated files
-   */
-  @Required
-  public void setFilenamePrefix(String filenamePrefix) {
-    this.filenamePrefix = filenamePrefix;
-  }
-
-  /**
-   * Sets the batch size for fetching content.
-   *
-   * @param contentBatchPrefetchSize the batch size for fetching content
-   */
-  @Required
-  public void setContentBatchPrefetchSize(int contentBatchPrefetchSize) {
-    this.contentBatchPrefetchSize = contentBatchPrefetchSize;
-  }
 }

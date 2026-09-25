@@ -3,8 +3,7 @@ import Config from "@jangaroo/runtime/Config";
 import ConfigUtils from "@jangaroo/runtime/ConfigUtils";
 import OpenCSVExportContentSetDialogActionBase from "./OpenCSVExportContentSetDialogActionBase";
 
-interface OpenCSVExportContentSetDialogActionConfig extends Config<OpenCSVExportContentSetDialogActionBase> {
-}
+interface OpenCSVExportContentSetDialogActionConfig extends Config<OpenCSVExportContentSetDialogActionBase> {}
 
 class OpenCSVExportContentSetDialogAction extends OpenCSVExportContentSetDialogActionBase {
   declare Config: OpenCSVExportContentSetDialogActionConfig;
@@ -12,11 +11,15 @@ class OpenCSVExportContentSetDialogAction extends OpenCSVExportContentSetDialogA
   static readonly ACTION_ID: string = "openCSVExportContentSetDialogAction";
 
   constructor(config: Config<OpenCSVExportContentSetDialogAction> = null) {
-    super(ConfigUtils.apply(Config(OpenCSVExportContentSetDialogAction, {
-      actionId: OpenCSVExportContentSetDialogAction.ACTION_ID,
-      contentValueExpression: ValueExpressionFactory.createFromValue(),
-
-    }), config));
+    super(
+      ConfigUtils.apply(
+        Config(OpenCSVExportContentSetDialogAction, {
+          actionId: OpenCSVExportContentSetDialogAction.ACTION_ID,
+          contentValueExpression: ValueExpressionFactory.createFromValue(),
+        }),
+        config,
+      ),
+    );
   }
 }
 

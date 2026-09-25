@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.activation.MimeTypeParseException;
+import jakarta.activation.MimeTypeParseException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;

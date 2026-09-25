@@ -1,13 +1,11 @@
-
 /**
  * Interface values for ResourceBundle "CSVExportStudioPlugin".
  * @see CSVExportStudioPlugin_properties#INSTANCE
  */
 interface CSVExportStudioPlugin_properties {
-
-/**
- * Labels
- */
+  /**
+   * Labels
+   */
   library_browse_export_btn_tooltip: string;
   library_search_export_btn_tooltip: string;
   requestURLDialog_title: string;
@@ -44,7 +42,7 @@ const CSVExportStudioPlugin_properties: CSVExportStudioPlugin_properties = {
   exportToast_success_title: "Background CSV Export Success",
   exportToast_success_text: "{0} completed successfully.",
   exportToast_failure_title: "Background CSV Export Failure",
-  exportToast_failure_text: "{0} failed."
+  exportToast_failure_text: "{0} failed.",
 };
 
 export default CSVExportStudioPlugin_properties;

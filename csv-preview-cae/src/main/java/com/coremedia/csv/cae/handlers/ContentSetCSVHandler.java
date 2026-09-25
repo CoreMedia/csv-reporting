@@ -1,10 +1,12 @@
 package com.coremedia.csv.cae.handlers;
 
-import com.coremedia.objectserver.web.links.Link;
+import com.coremedia.csv.common.CSVConfig;
+import com.coremedia.csv.cae.utils.BaseCSVUtil;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLDecoder;
 
@@ -12,9 +14,12 @@ import java.net.URLDecoder;
  * Handles a request to export a content report in CSV format. The request must contain a list of content IDs.
  * Used by the CSV export in studio.
  */
-@Link
-@RequestMapping
+@Controller
 public class ContentSetCSVHandler extends BaseCSVHandler {
+
+  public ContentSetCSVHandler(BaseCSVUtil csvUtil, CSVConfig csvConfig) {
+    super(csvUtil, csvConfig);
+  }
 
   /**
    * The link pattern which this handler will activate upon.

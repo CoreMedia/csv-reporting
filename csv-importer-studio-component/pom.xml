@@ -13,7 +13,7 @@
 
   <properties>
     <coremedia.project.extension.for>studio-lib</coremedia.project.extension.for>
-    <commons.csv.version>1.10.0</commons.csv.version>
+    <commons.csv.version>1.14.1</commons.csv.version>
   </properties>
 
   <dependencies>
@@ -41,8 +41,12 @@
       <artifactId>spring-web</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>jsr311-api</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
     </dependency>
     <dependency>
       <groupId>jakarta.servlet</groupId>

@@ -4,30 +4,27 @@
   "version": "1.0.0-SNAPSHOT",
   "private": true,
   "dependencies": {
-    "@coremedia/studio-client.app-context-models": "2310.1.0",
-    "@coremedia/studio-client.cap-base-models": "2310.1.0",
-    "@coremedia/studio-client.client-core": "2310.1.0",
-    "@coremedia/studio-client.client-core-impl": "2310.1.0",
-    "@coremedia/studio-client.ext.ui-components": "2310.1.0",
-    "@coremedia/studio-client.main.editor-components": "2310.1.0",
-    "@jangaroo/ext-ts": "^1.0.3",
-    "@jangaroo/runtime": "^1.5.0"
+    "@coremedia/studio-client.app-context-models": "catalog:",
+    "@coremedia/studio-client.cap-base-models": "catalog:",
+    "@coremedia/studio-client.client-core": "catalog:",
+    "@coremedia/studio-client.client-core-impl": "catalog:",
+    "@coremedia/studio-client.ext.ui-components": "catalog:",
+    "@coremedia/studio-client.main.editor-components": "catalog:",
+    "@jangaroo/ext-ts": "catalog:",
+    "@jangaroo/runtime": "catalog:"
   },
   "devDependencies": {
-    "@jangaroo/build": "^1.5.0",
-    "@jangaroo/core": "^1.5.0",
-    "@jangaroo/eslint-config": "^1.5.0",
-    "@jangaroo/publish": "^1.5.0",
-    "eslint": "^7.32.0",
-    "rimraf": "^3.0.2"
+    "@coremedia/studio-client.ext.eslint-config": "catalog:",
+    "@jangaroo/build": "catalog:",
+    "@jangaroo/core": "catalog:",
+    "eslint": "catalog:",
+    "rimraf": "catalog:"
   },
   "scripts": {
     "clean": "rimraf ./dist && rimraf ./build",
     "build": "jangaroo build",
     "watch": "jangaroo watch",
-    "publish": "jangaroo publish",
-    "test": "jangaroo joounit",
-    "lint": "eslint --fix \"src/**/*.ts\""
+    "lint": "eslint"
   },
   "exports": {
     "./*": {
