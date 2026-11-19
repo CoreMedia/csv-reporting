@@ -1,4 +1,4 @@
-import { SearchParameters2 } from "@coremedia/studio-client.cap-rest-client";
+import SearchParameters from "@coremedia/studio-client.cap-rest-client/content/search/SearchParameters";
 import Struct from "@coremedia/studio-client.cap-rest-client/struct/Struct";
 import RemoteService from "@coremedia/studio-client.client-core-impl/data/impl/RemoteService";
 import ValueExpression from "@coremedia/studio-client.client-core/data/ValueExpression";
@@ -12,18 +12,20 @@ import editorContext from "@coremedia/studio-client.main.editor-components/sdk/e
 import ObjectUtil from "@jangaroo/ext-ts/Object";
 import { bind, cast } from "@jangaroo/runtime";
 import Config from "@jangaroo/runtime/Config";
+import CSVExportDialog from "./CSVExportDialog";
 import jobService from "@coremedia/studio-client.cap-rest-client/common/jobService";
 import { AnyFunction } from "@jangaroo/runtime/types";
+import CSVExportJob from "./CSVExportJob";
 import TrackedJob from "@coremedia/studio-client.cap-rest-client/common/TrackedJob";
 import toastService from "@coremedia/studio-client.ext.toast-components/toastService";
 import StringUtil from "@coremedia/studio-client.client-core/util/StringUtil";
 import ValidationState from "@coremedia/studio-client.ext.ui-components/mixins/ValidationState";
-import CSVExportJob from "./CSVExportJob";
-import CSVExportDialog from "./CSVExportDialog";
 import CSVExportStudioPlugin_properties from "./CSVExportStudioPlugin_properties";
 
-interface CSVExportDialogBaseConfig
-  extends Config<StudioDialog>, Partial<Pick<CSVExportDialogBase, "confirmationMessage">> {}
+interface CSVExportDialogBaseConfig extends Config<StudioDialog>, Partial<Pick<CSVExportDialogBase,
+  "confirmationMessage"
+>> {
+}
 
 class CSVExportDialogBase extends StudioDialog {
   declare Config: CSVExportDialogBaseConfig;
@@ -56,8 +58,8 @@ class CSVExportDialogBase extends StudioDialog {
 
   protected getDisabledValueExpression(): ValueExpression {
     if (!this.#_disabledValueExpression) {
-      this.#_disabledValueExpression = ValueExpressionFactory.createFromFunction(
-        (): boolean => !this.getSelectedTemplateValueExpression().getValue(),
+      this.#_disabledValueExpression = ValueExpressionFactory.createFromFunction((): boolean =>
+        !this.getSelectedTemplateValueExpression().getValue(),
       );
     }
     return this.#_disabledValueExpression;
@@ -65,10 +67,7 @@ class CSVExportDialogBase extends StudioDialog {
 
   protected getSelectedTemplateValueExpression(): ValueExpression {
     if (!this.#_selectedTemplateValueExpression) {
-      this.#_selectedTemplateValueExpression = ValueExpressionFactory.create(
-        "selectedTemplate",
-        beanFactory._.createLocalBean(),
-      );
+      this.#_selectedTemplateValueExpression = ValueExpressionFactory.create("selectedTemplate", beanFactory._.createLocalBean());
       this.#_selectedTemplateValueExpression.setValue(null);
     }
     return this.#_selectedTemplateValueExpression;
@@ -83,26 +82,20 @@ class CSVExportDialogBase extends StudioDialog {
 
   protected getRequestURIExpression(): ValueExpression {
     if (!this.#_requestURIExpression) {
-      this.#_requestURIExpression = ValueExpressionFactory.createFromFunction(
-        async (): Promise<string> => this.getRequestURI(await CSVExportDialogBase.getSearchParams()),
+      this.#_requestURIExpression = ValueExpressionFactory.createFromFunction((): string =>
+        this.getRequestURI(CSVExportDialogBase.getSearchParams()),
       );
     }
     return this.#_requestURIExpression;
   }
 
   protected getTemplates(): Array<any> {
-    const templatesConfig: Struct = StudioConfigurationUtil.getConfiguration(
-      CSVExportDialogBase.REPORTING_SETTINGS_NAME,
-      CSVExportDialogBase.TEMPLATES_SETTINGS_NAME,
-    );
+    const templatesConfig: Struct = StudioConfigurationUtil.getConfiguration(CSVExportDialogBase.REPORTING_SETTINGS_NAME, CSVExportDialogBase.TEMPLATES_SETTINGS_NAME);
     const options = [];
 
     if (templatesConfig) {
-      templatesConfig
-        .getType()
-        .getPropertyNames()
-        .forEach((name: string): void => {
-          options.push({ name: name });
+      templatesConfig.getType().getPropertyNames().forEach((name: string): void => {
+        options.push({ "name": name });
         });
     }
     if (!this.getSelectedTemplateValueExpression().getValue() && options.length > 0) {
@@ -111,13 +104,13 @@ class CSVExportDialogBase extends StudioDialog {
     return options;
   }
 
-  protected async handleDirectExport(): Promise<void> {
-    window.open(this.getRequestURI(await CSVExportDialogBase.getSearchParams()));
+  protected handleDirectExport(): void {
+    window.open(this.getRequestURI(CSVExportDialogBase.getSearchParams()));
     this.close();
   }
 
-  protected async handleBackgroundExport(): Promise<void> {
-    const searchParams: SearchParameters2 = await CSVExportDialogBase.getSearchParams();
+  protected handleBackgroundExport(): void {
+    const searchParams: SearchParameters = CSVExportDialogBase.getSearchParams();
     const params = ObjectUtils.removeUndefinedOrNullProperties(searchParams);
     params["template"] = this.getSelectedTemplateValueExpression().getValue();
     delete params["xclass"];
@@ -132,37 +125,43 @@ class CSVExportDialogBase extends StudioDialog {
       const msg = StringUtil.format(CSVExportStudioPlugin_properties.exportToast_failure_text, job.name);
       toastService._.showToast(title, msg, ValidationState.ERROR);
     };
-    const trackedJob: TrackedJob = jobService._.executeJob(job, successCallback, failureCallback);
+    const trackedJob: TrackedJob = jobService._.executeJob(
+            job,
+            successCallback,
+            failureCallback
+    );
     job.startedTrackedJob = trackedJob;
     this.close();
   }
 
-  protected static getSearchParams(): Promise<SearchParameters2> {
+  protected static getSearchParams(): SearchParameters {
     return cast(EditorContextImpl, editorContext._).getCollectionViewModel().getSearchParameters();
   }
 
-  protected getRequestURI(searchParams: SearchParameters2): string {
+  protected getRequestURI(searchParams: SearchParameters): string {
     const url = RemoteService.calculateRequestURI("exportcsv/contentset");
 
     const params = ObjectUtils.removeUndefinedOrNullProperties(searchParams);
     params["template"] = this.getSelectedTemplateValueExpression().getValue();
     delete params["xclass"];
-    const paramString = "?" + ObjectUtil.toQueryString(params);
+    const paramString = "?" + ObjectUtil.toQueryString(searchParams);
 
     return url + paramString;
   }
 
-  protected async copyQueryURLToClipboard(): Promise<void> {
+  protected copyQueryURLToClipboard(): void {
     // Create new readonly element with the QueryURL; append to the body as invisible in order to select and copy later
     const cp = window.document.createElement("textarea");
-    cp.value = this.getRequestURI(await CSVExportDialogBase.getSearchParams());
+    cp.value = this.getRequestURI(CSVExportDialogBase.getSearchParams());
     cp.setAttribute("readonly", "");
     cp.style.position = "absolute";
     cp.style.left = "-9999px";
     window.document.body.appendChild(cp);
     // Check if there is any content selected previously to restore it after copying
     const selected: Range =
-      window.document.getSelection().rangeCount > 0 ? window.document.getSelection().getRangeAt(0) : undefined;
+            window.document.getSelection().rangeCount > 0
+              ? window.document.getSelection().getRangeAt(0)
+              : undefined;
     // Select and copy the QueryURL
     cp.select();
     window.document.execCommand("copy");

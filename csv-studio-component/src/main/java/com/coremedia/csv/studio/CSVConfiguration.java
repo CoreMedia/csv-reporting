@@ -4,7 +4,7 @@ import com.coremedia.cap.content.ContentRepository;
 import com.coremedia.rest.cap.CapRestServiceBaseConfiguration;
 import com.coremedia.rest.cap.CapRestServiceSearchConfiguration;
 import com.coremedia.rest.cap.config.StudioConfigurationProperties;
-import com.coremedia.rest.cap.content.CapObjectFormat;
+import com.coremedia.rest.cap.content.search.CapObjectFormat;
 import com.coremedia.rest.cap.content.search.SearchService;
 import com.coremedia.rest.linking.LinkResolver;
 import org.slf4j.Logger;
